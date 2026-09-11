@@ -52,7 +52,7 @@ export const CompleteShelfLandingPage: React.FC<CompleteShelfLandingPageProps> =
         }
       `;
     } catch {
-      // Sandboxed origin safety fallback
+      //Sandboxed origin safety fallback
     }
   };
 
