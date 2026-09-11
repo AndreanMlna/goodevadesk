@@ -133,7 +133,7 @@ Frontend aktif di [http://localhost:5173](http://localhost:5173).
 
 ## 2. 🤖 Provider LLM yang Dipilih dan Alasannya
 
-Sistem mengadopsi arsitektur **Adaptive Multi-Provider LLM Engine** dengan pilihan utama **Google Gemini (`gemini-1.5-flash`)** dan dukungan langsung untuk **OpenAI (`gpt-4o-mini`)**, serta **Deterministic Offline Mock Engine** sebagai fallback.
+Sistem mengadopsi arsitektur **Adaptive Multi-Provider LLM Engine** dengan pilihan utama **Google Gemini (`gemini-3.5-flash-lite` / `gemini-2.5-flash`)** dan dukungan langsung untuk **OpenAI (`gpt-4o-mini`)**, serta **Deterministic Offline Mock Engine** sebagai fallback.
 
 ```
                     +------------------------------------------+
@@ -143,21 +143,28 @@ Sistem mengadopsi arsitektur **Adaptive Multi-Provider LLM Engine** dengan pilih
          +-------------------------------+-------------------------------+
          |                               |                               |
          v                               v                               v
-+------------------+           +-------------------+           +-------------------+
-|  Google Gemini   |           |   OpenAI Engine   |           | Deterministic Mock|
-| (gemini-1.5-flash|           |   (gpt-4o-mini)   |           |  (Offline Engine) |
-|   Primary Rec.)  |           | (Alternative Rec.)|           | (Zero API Key Req)|
-+------------------+           +-------------------+           +-------------------+
++-----------------------+      +-------------------+           +-------------------+
+|     Google Gemini     |      |   OpenAI Engine   |           | Deterministic Mock|
+|(gemini-3.5-flash-lite |      |   (gpt-4o-mini)   |           |  (Offline Engine) |
+|   / gemini-2.5-flash) |      | (Alternative Rec.)|           | (Zero API Key Req)|
++-----------------------+      +-------------------+           +-------------------+
 ```
 
-### Mengapa Memilih `gemini-1.5-flash` / `gpt-4o-mini`?
+### Model Gemini yang Didukung (`SupportedGeminiModel`):
+Diatur secara type-safe pada `backend/src/llm/llm.constants.ts`:
+- **`gemini-3.5-flash-lite`** *(Default)*: Model generasi ultra-ringan dengan latensi kilat (<800ms) dan konsumsi token paling hemat untuk beban kerja customer support bervolume tinggi.
+- **`gemini-2.5-flash`**: Model multimodal cepat seimbang untuk analisis konteks tiket yang lebih panjang.
+- **`gemini-2.5-pro`**: Model penalaran mendalam (*deep reasoning*) untuk analisis tiket tingkat eskalasi tinggi.
+- *(Catatan: Nilai legacy seperti `gemini-1.5-flash` secara otomatis dimigrasikan oleh fungsi `resolveGeminiModel()` ke `gemini-3.5-flash-lite`)*.
+
+### Mengapa Memilih `gemini-3.5-flash-lite` / `gpt-4o-mini`?
 
 1. **Efisiensi Biaya (*Cost-to-Performance Ratio*) Ekstrem**:
-   - Tiket *customer support* adalah beban kerja bervolume tinggi (*high-throughput*). Menggunakan model raksasa seperti GPT-4o atau Gemini 1.5 Pro akan sangat memboroskan biaya operasional.
-   - `gemini-1.5-flash` dan `gpt-4o-mini` menawarkan harga token hingga **90% lebih murah** namun memiliki akurasi pemahaman konteks klasifikasi teks yang setara untuk tugas ekstraksi dan kategorisasi.
+   - Tiket *customer support* adalah beban kerja bervolume tinggi (*high-throughput*). Menggunakan model raksasa seperti GPT-4o atau Gemini 2.5 Pro akan sangat memboroskan biaya operasional.
+   - `gemini-3.5-flash-lite` dan `gpt-4o-mini` menawarkan harga token hingga **90% lebih murah** namun memiliki akurasi pemahaman konteks klasifikasi teks yang setara untuk tugas ekstraksi dan kategorisasi.
 
 2. **Kecepatan Latensi Sub-Detik (*Sub-Second Latency*)**:
-   - Rata-rata waktu respons `gemini-1.5-flash` berada pada rentang **400ms – 1.200ms**, sangat krusial agar pengalaman pengguna saat menekan tombol *"Submit Ticket"* tetap instan dan responsif.
+   - Rata-rata waktu respons `gemini-3.5-flash-lite` berada pada rentang **300ms – 900ms**, sangat krusial agar pengalaman pengguna saat menekan tombol *"Submit Ticket"* tetap instan dan responsif.
 
 3. **Kemampuan *Strict JSON Structured Output***:
    - Model mendukung parameter JSON Mode/Schema murni. Ini mencegah terjadinya kesalahan format (*parsing error*) saat mengekstrak bidang `category`, `priority`, `urgency_score`, dan `suggested_reply`.
