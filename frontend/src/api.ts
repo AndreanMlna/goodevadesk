@@ -122,7 +122,7 @@ export async function updateTicketStatus(
 }
 
 /**
- * Calls the real Python NLP Microservice on Hugging Face (or local) for NER & category extraction.
+ * Calls the real Python NLP Microservice on Hugging Face ZeroGPU (Gradio 5 API) or local FastAPI for NER & category extraction.
  */
 export async function analyzeWithPythonNlp(
   subject: string,
@@ -130,6 +130,44 @@ export async function analyzeWithPythonNlp(
   customerEmail?: string,
 ): Promise<NlpAnalysisResult | null> {
   try {
+    // 1. If pointing to Hugging Face ZeroGPU Space (Gradio 5 engine)
+    if (NLP_BASE_URL.includes('hf.space') || NLP_BASE_URL.includes('gradio')) {
+      const callRes = await fetch(`${NLP_BASE_URL}/gradio_api/call/gradio_fn`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: [subject, message, customerEmail || ''],
+        }),
+      });
+
+      if (!callRes.ok) return null;
+      const callJson = await callRes.json();
+      if (!callJson?.event_id) return null;
+
+      const eventRes = await fetch(`${NLP_BASE_URL}/gradio_api/call/gradio_fn/${callJson.event_id}`);
+      if (!eventRes.ok) return null;
+      const text = await eventRes.text();
+      const match = text.match(/data:\s*(\[[\s\S]*?\])\s*(\n|$)/);
+      if (!match) return null;
+
+      const raw = JSON.parse(match[1]);
+      return {
+        predicted_category: typeof raw[0] === 'object' && raw[0]?.label ? raw[0].label : String(raw[0] || 'general'),
+        confidence: typeof raw[1] === 'string' ? (parseFloat(raw[1]) / 100 || 0.95) : (Number(raw[1]) || 0.95),
+        urgency: (raw[2] as any) || 'medium',
+        sentiment_hint: (raw[3] as any) || 'neutral',
+        summary: String(raw[4] || ''),
+        entities: (raw[5] as any) || {
+          emails: [],
+          phone_numbers: [],
+          invoice_or_order_ids: [],
+          error_codes: [],
+          monetary_amounts: [],
+        },
+      };
+    }
+
+    // 2. Standard Local FastAPI (/analyze)
     const res = await fetch(`${NLP_BASE_URL}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
