@@ -136,13 +136,12 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         {/* SLA Target Banner */}
         {ticket.sla_deadline && (
           <div
-            className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-              ticket.status === 'closed'
+            className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${ticket.status === 'closed'
                 ? 'bg-emerald-950/20 border-emerald-500/30'
                 : deadlineInfo?.isBreached
-                ? 'bg-slate-900/80 border-slate-800'
-                : 'bg-slate-900/80 border-slate-800'
-            }`}
+                  ? 'bg-slate-900/80 border-slate-800'
+                  : 'bg-slate-900/80 border-slate-800'
+              }`}
           >
             <div className="flex items-center gap-2">
               {ticket.status === 'closed' ? (
@@ -264,22 +263,20 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 <span className="text-slate-400 text-[11px]">AI Quality Feedback:</span>
                 <button
                   onClick={() => handleFeedbackClick('thumbs_up')}
-                  className={`p-1.5 rounded-lg border transition ${
-                    feedbackSubmitted === 'thumbs_up'
+                  className={`p-1.5 rounded-lg border transition ${feedbackSubmitted === 'thumbs_up'
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                       : 'bg-slate-800 text-slate-400 hover:text-emerald-300 border-slate-700'
-                  }`}
+                    }`}
                   title="Accurate draft (Thumbs Up)"
                 >
                   <ThumbsUp className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setShowFeedbackInput(!showFeedbackInput)}
-                  className={`p-1.5 rounded-lg border transition ${
-                    feedbackSubmitted === 'thumbs_down'
+                  className={`p-1.5 rounded-lg border transition ${feedbackSubmitted === 'thumbs_down'
                       ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                       : 'bg-slate-800 text-slate-400 hover:text-rose-300 border-slate-700'
-                  }`}
+                    }`}
                   title="Needs improvement (Thumbs Down)"
                 >
                   <ThumbsDown className="w-3.5 h-3.5" />
@@ -318,20 +315,19 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3 shadow-inner">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold text-cyan-400 flex items-center gap-1.5">
-                <Cpu className="w-4 h-4 text-cyan-400" /> Python NLP Microservice Analysis (Bonus)
+                <Cpu className="w-4 h-4 text-cyan-400" /> Python NLP Microservice Analysis
               </span>
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-800/50 uppercase">
                   Category: {nlpAnalysis.predicted_category} ({Math.round(nlpAnalysis.confidence * 100)}%)
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${
-                    nlpAnalysis.urgency === 'high'
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${nlpAnalysis.urgency === 'high'
                       ? 'bg-rose-950/50 text-rose-300 border-rose-800/40'
                       : nlpAnalysis.urgency === 'medium'
-                      ? 'bg-amber-950/50 text-amber-300 border-amber-800/40'
-                      : 'bg-slate-800 text-slate-300 border-slate-700'
-                  }`}
+                        ? 'bg-amber-950/50 text-amber-300 border-amber-800/40'
+                        : 'bg-slate-800 text-slate-300 border-slate-700'
+                    }`}
                 >
                   Urgency: {nlpAnalysis.urgency}
                 </span>
@@ -441,11 +437,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               <button
                 key={st}
                 onClick={() => onStatusUpdate(ticket.id, st)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize transition ${
-                  ticket.status === st
+                className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize transition ${ticket.status === st
                     ? 'bg-purple-600 text-white'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 {st.replace('_', ' ')}
               </button>
