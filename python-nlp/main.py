@@ -107,12 +107,24 @@ def determine_urgency(lower_text: str, error_codes: List[str], billing_score: fl
         return "medium"
     return "low"
 
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
 @app.get("/")
 @app.get("/health")
+@app.get("/api")
+@app.get("/api/health")
+@app.get("/api/index")
+@app.get("/api/index/health")
+@app.get("/api/index.py")
+@app.get("/api/index.py/health")
 def health_check():
     return {"status": "ok", "service": "goodevadesk-python-nlp", "version": "1.0.0"}
 
 @app.post("/analyze", response_model=AnalyzeTicketResponse)
+@app.post("/api/analyze", response_model=AnalyzeTicketResponse)
+@app.post("/api/index/analyze", response_model=AnalyzeTicketResponse)
+@app.post("/api/index.py/analyze", response_model=AnalyzeTicketResponse)
 def analyze_ticket(request: AnalyzeTicketRequest):
     combined_text = f"{request.subject} {request.message}"
     lower_text = combined_text.lower()
@@ -148,6 +160,17 @@ def analyze_ticket(request: AnalyzeTicketRequest):
         sentiment_hint=sentiment_hint,
         summary=summary,
     )
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "OPTIONS"])
+async def catch_all_fallback(request: Request, full_path: str):
+    if request.method == "POST":
+        try:
+            body = await request.json()
+            req = AnalyzeTicketRequest(**body)
+            return analyze_ticket(req)
+        except Exception:
+            return JSONResponse({"detail": "Invalid request payload"}, status_code=400)
+    return {"status": "ok", "service": "goodevadesk-python-nlp", "version": "1.0.0"}
 
 if __name__ == "__main__":
     import uvicorn
