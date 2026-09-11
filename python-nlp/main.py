@@ -107,6 +107,7 @@ def determine_urgency(lower_text: str, error_codes: List[str], billing_score: fl
         return "medium"
     return "low"
 
+@app.get("/")
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "goodevadesk-python-nlp", "version": "1.0.0"}
