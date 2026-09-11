@@ -11,12 +11,6 @@ from main import app as base_app
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 class VercelPathMiddleware:
-    """
-    Normalizes incoming request paths on Vercel Serverless.
-    When Vercel rewrites requests from /(.*) to /api/index.py, it passes
-    the original URL path in the 'x-matched-path' or 'x-forwarded-uri' header.
-    This middleware restores the original path so FastAPI route matching succeeds.
-    """
     def __init__(self, app: ASGIApp):
         self.app = app
 
