@@ -8,8 +8,21 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://goodevadesk.vercel.app/)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-ZeroGPU%20Space-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://andrerean-goodevadesk-nlp.hf.space)
 
 **GoodevaDesk** adalah platform tiket customer support enterprise berbasis **Multi-Tenancy** dengan klasifikasi otomatis berbasis **Large Language Model (LLM)**, pembuatan draft balasan awal (*suggested reply* dengan RAG Grounding), strategi caching cerdas berbasis sidik jari SHA-256 (**Redis**), ekstraksi entitas mendalam (**Python NLP Microservice**), serta dashboard operasional modern (**React 19 + Tailwind CSS**).
+
+---
+
+### 🌐 Live Production Demo
+
+Aplikasi sistem GoodevaDesk telah aktif dan dapat diuji coba secara langsung melalui tautan publik berikut:
+
+* 🚀 **Live Web Application**: [GoodevaDesk - AI Support & Ticket Hub](https://goodevadesk.vercel.app/)
+* 🤖 **AI NLP Microservice (ZeroGPU)**: [GoodevaDesk NLP & Entity Extraction Space](https://andrerean-goodevadesk-nlp.hf.space)
+* 🐘 **Cloud Database**: Neon Serverless PostgreSQL (Singapore Region)
+* ⚡ **Cloud Cache Layer**: Upstash Redis (Singapore Region)
 
 ---
 
