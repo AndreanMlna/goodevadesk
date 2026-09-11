@@ -6,6 +6,9 @@
     },
     "backend": {
       "root": "backend"
+    },
+    "nlp": {
+      "root": "python-nlp"
     }
   }
 }
