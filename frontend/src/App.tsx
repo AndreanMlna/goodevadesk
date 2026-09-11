@@ -50,6 +50,7 @@ export default function App() {
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
   const [nlpAnalysis, setNlpAnalysis] = useState<NlpAnalysisResult | null>(null);
+  const [loadingNlp, setLoadingNlp] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
@@ -182,15 +183,18 @@ export default function App() {
   useEffect(() => {
     if (!selectedTicket) {
       setNlpAnalysis(null);
+      setLoadingNlp(false);
       return;
     }
+    setLoadingNlp(true);
     analyzeWithPythonNlp(
       selectedTicket.subject,
       selectedTicket.message,
       selectedTicket.customer_email,
     )
       .then((res) => setNlpAnalysis(res))
-      .catch(() => setNlpAnalysis(null));
+      .catch(() => setNlpAnalysis(null))
+      .finally(() => setLoadingNlp(false));
   }, [selectedTicket]);
 
   const filteredTickets = tickets.filter((t) => {
@@ -333,6 +337,7 @@ export default function App() {
         onApproveReply={handleApproveReply}
         onFeedback={handleFeedback}
         nlpAnalysis={nlpAnalysis}
+        loadingNlp={loadingNlp}
       />
 
       <CreateTicketModal

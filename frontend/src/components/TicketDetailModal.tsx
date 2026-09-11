@@ -28,6 +28,7 @@ interface TicketDetailModalProps {
   onApproveReply: () => Promise<void>;
   onFeedback: (rating: 'thumbs_up' | 'thumbs_down', notes?: string) => Promise<void>;
   nlpAnalysis: NlpAnalysisResult | null;
+  loadingNlp?: boolean;
 }
 
 export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
@@ -37,6 +38,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   onApproveReply,
   onFeedback,
   nlpAnalysis,
+  loadingNlp = false,
 }) => {
   const [isApproving, setIsApproving] = useState(false);
   const [approvalSuccess, setApprovalSuccess] = useState(false);
@@ -310,8 +312,19 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           )}
         </div>
 
+        {/* Python NLP Loading State */}
+        {loadingNlp && (
+          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex items-center justify-between text-xs text-cyan-300 animate-pulse">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
+              <span>Analyzing ticket entities & sentiment with Python NLP ZeroGPU microservice...</span>
+            </div>
+            <span className="text-[10px] text-cyan-400/70 font-mono">ZeroGPU Space</span>
+          </div>
+        )}
+
         {/* Python NLP Section */}
-        {nlpAnalysis && (
+        {!loadingNlp && nlpAnalysis && (
           <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3 shadow-inner">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold text-cyan-400 flex items-center gap-1.5">
@@ -322,12 +335,13 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   Category: {nlpAnalysis.predicted_category} ({Math.round(nlpAnalysis.confidence * 100)}%)
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${nlpAnalysis.urgency === 'high'
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${
+                    nlpAnalysis.urgency === 'high'
                       ? 'bg-rose-950/50 text-rose-300 border-rose-800/40'
                       : nlpAnalysis.urgency === 'medium'
                         ? 'bg-amber-950/50 text-amber-300 border-amber-800/40'
                         : 'bg-slate-800 text-slate-300 border-slate-700'
-                    }`}
+                  }`}
                 >
                   Urgency: {nlpAnalysis.urgency}
                 </span>
@@ -423,7 +437,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 <span>
                   <strong className="text-slate-300 font-medium">Pipeline Summary:</strong> {nlpAnalysis.summary}
                 </span>
-                <span className="text-[10px] text-cyan-400 font-mono">FastAPI :8000</span>
+                <span className="text-[10px] text-cyan-400 font-mono">ZeroGPU Space</span>
               </div>
             )}
           </div>
