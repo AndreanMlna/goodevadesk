@@ -19,8 +19,10 @@
 
 Aplikasi sistem GoodevaDesk telah aktif dan dapat diuji coba secara langsung melalui tautan publik berikut:
 
-* 🚀 **Live Web Application**: [GoodevaDesk - AI Support & Ticket Hub](https://goodevadesk.vercel.app/)
-* 🤖 **AI NLP Microservice (ZeroGPU)**: [GoodevaDesk NLP & Entity Extraction Space](https://andrerean-goodevadesk-nlp.hf.space)
+* 🚀 **Live Web Application (Frontend)**: [GoodevaDesk - AI Support & Ticket Hub](https://goodevadesk.vercel.app/)
+* ⚙️ **Production REST API (Backend NestJS)**: [GoodevaDesk Backend API](https://goodevadesk-api.vercel.app/) ([API Health Check](https://goodevadesk-api.vercel.app/health))
+* 🐍 **Production Python NLP Microservice (Serverless)**: [GoodevaDesk NLP Service](https://goodevadesk-nlp.vercel.app/) ([NLP Health Check](https://goodevadesk-nlp.vercel.app/health))
+* 🤖 **Interactive NLP Demo Space (Hugging Face)**: [GoodevaDesk NLP Space](https://andrerean-goodevadesk-nlp.hf.space)
 * 🐘 **Cloud Database**: Neon Serverless PostgreSQL (Singapore Region)
 * ⚡ **Cloud Cache Layer**: Upstash Redis (Singapore Region)
 
@@ -296,7 +298,7 @@ Jika diberikan alokasi waktu pengembangan tambahan, berikut adalah arsitektur da
 ---
 
 ## 5. 🐍 Python NLP Microservice (Bonus Bagian D)
-
+ 
 Tersedia microservice berbasis **FastAPI** di direktori `python-nlp/` yang melengkapi pipeline analisis:
 - **Named Entity Recognition (NER) & Regex Extraction**:
   - `emails`: Ekstraksi otomatis alamat email pengirim dan pihak ketiga.
@@ -305,6 +307,11 @@ Tersedia microservice berbasis **FastAPI** di direktori `python-nlp/` yang melen
   - `error_codes`: Ekstraksi kode status sistem (`504`, `ERR_CONNECTION_REFUSED`, `SQLSTATE_23505`).
   - `monetary_amounts`: Ekstraksi nominal uang (`Rp 150.000`, `$50.00`).
 - **Analisis Sentimen & Urgensi**: Menghitung polaritas sentimen (*frustrated, positive, neutral*) untuk membantu penentuan prioritas tiket.
+- **Opsi Deployment Fleksibel**:
+  - **Vercel Serverless Python**: Berjalan otomatis via `@vercel/python` dengan `VercelPathMiddleware` di `https://goodevadesk-nlp.vercel.app/` (0 biaya, zero maintenance, auto-scale).
+  - **Docker Container**: Tersedia `Dockerfile` mandiri atau via `docker compose up -d nlp`.
+  - **Lokal Uvicorn**: `uvicorn main:app --port 8000 --reload`.
+- **Zero-Downtime Client Resilience**: Dilengkapi `runLocalNlpFallback()` pada frontend sehingga jika microservice cloud sedang cold start atau mengalami gangguan jaringan, UI tetap menampilkan analisis entitas secara instan tanpa pernah blank.
 
 Jalankan test suite Python NLP:
 ```bash

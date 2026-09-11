@@ -1,27 +1,19 @@
 import re
-from typing import List, Dict, Any, Optional
-from fastapi import FastAPI
+from typing import List, Optional
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-app = FastAPI(
-    title="GoodevaDesk NLP & Entity Extraction Microservice",
-    description="Extracts named entities, contact info, and performs rule-based NLI category classification",
-    version="1.0.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ==============================================================================
+# 1. Data Transfer Objects (DTOs)
+# ==============================================================================
 
 class AnalyzeTicketRequest(BaseModel):
     subject: str = Field(..., min_length=1, examples=["Double billing on invoice #INV-2026-09"])
     message: str = Field(..., min_length=1, examples=["Contact me at finance@acme.com or +628123456789. We were charged $450 twice."])
     customer_email: Optional[str] = Field(None, examples=["customer@example.com"])
+
 
 class ExtractedEntities(BaseModel):
     emails: List[str] = []
@@ -30,6 +22,7 @@ class ExtractedEntities(BaseModel):
     error_codes: List[str] = []
     monetary_amounts: List[str] = []
 
+
 class AnalyzeTicketResponse(BaseModel):
     entities: ExtractedEntities
     predicted_category: str
@@ -37,6 +30,11 @@ class AnalyzeTicketResponse(BaseModel):
     urgency: str
     sentiment_hint: str
     summary: str
+
+
+# ==============================================================================
+# 2. Entity Extraction Patterns & Scoring Weights
+# ==============================================================================
 
 EMAIL_REGEX = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
 PHONE_REGEX = r'(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3,4})[-. ]*(\d{4,6})'
@@ -61,6 +59,11 @@ TECHNICAL_KEYWORDS = {
 }
 
 URGENT_KEYWORDS = ['urgent', 'asap', 'immediately', 'critical', 'production down', 'blocker', 'severe']
+
+
+# ==============================================================================
+# 3. Core NLP Engine Functions
+# ==============================================================================
 
 def extract_entities(text: str, customer_email: Optional[str] = None) -> ExtractedEntities:
     emails = list(set(re.findall(EMAIL_REGEX, text)))
@@ -88,6 +91,7 @@ def extract_entities(text: str, customer_email: Optional[str] = None) -> Extract
         monetary_amounts=money,
     )
 
+
 def classify_category(lower_text: str) -> tuple[str, float, float, float]:
     billing_score = sum(weight for kw, weight in BILLING_KEYWORDS.items() if kw in lower_text)
     technical_score = sum(weight for kw, weight in TECHNICAL_KEYWORDS.items() if kw in lower_text)
@@ -99,6 +103,7 @@ def classify_category(lower_text: str) -> tuple[str, float, float, float]:
     else:
         return "general", 0.70, billing_score, technical_score
 
+
 def determine_urgency(lower_text: str, error_codes: List[str], billing_score: float, technical_score: float) -> str:
     is_urgent = any(kw in lower_text for kw in URGENT_KEYWORDS) or len(error_codes) > 0
     if is_urgent:
@@ -107,8 +112,45 @@ def determine_urgency(lower_text: str, error_codes: List[str], billing_score: fl
         return "medium"
     return "low"
 
-from starlette.requests import Request
-from starlette.responses import JSONResponse
+
+def build_pipeline_summary(entities: ExtractedEntities) -> str:
+    detected_items = []
+    if entities.emails:
+        detected_items.append(f"{len(entities.emails)} email(s)")
+    if entities.invoice_or_order_ids:
+        detected_items.append(f"{len(entities.invoice_or_order_ids)} invoice/order ID(s)")
+    if entities.error_codes:
+        detected_items.append(f"{len(entities.error_codes)} error code(s)")
+    if entities.phone_numbers:
+        detected_items.append(f"{len(entities.phone_numbers)} phone number(s)")
+    if entities.monetary_amounts:
+        detected_items.append(f"{len(entities.monetary_amounts)} amount(s)")
+
+    return f"Detected: {', '.join(detected_items)}." if detected_items else "No specialized entities detected."
+
+
+# ==============================================================================
+# 4. FastAPI Application Setup
+# ==============================================================================
+
+app = FastAPI(
+    title="GoodevaDesk NLP & Entity Extraction Microservice",
+    description="Extracts named entities, contact info, and performs rule-based NLI category classification",
+    version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ==============================================================================
+# 5. Endpoints & Universal Routing (Local, Container, & Vercel Serverless)
+# ==============================================================================
 
 @app.get("/")
 @app.get("/health")
@@ -120,6 +162,7 @@ from starlette.responses import JSONResponse
 @app.get("/api/index.py/health")
 def health_check():
     return {"status": "ok", "service": "goodevadesk-python-nlp", "version": "1.0.0"}
+
 
 @app.post("/analyze", response_model=AnalyzeTicketResponse)
 @app.post("/api/analyze", response_model=AnalyzeTicketResponse)
@@ -133,24 +176,7 @@ def analyze_ticket(request: AnalyzeTicketRequest):
     category, confidence, billing_score, technical_score = classify_category(lower_text)
     urgency = determine_urgency(lower_text, entities.error_codes, billing_score, technical_score)
     sentiment_hint = "negative" if (billing_score > 0 or technical_score > 0) else "neutral"
-
-    detected_items = []
-    if entities.emails:
-        detected_items.append(f"{len(entities.emails)} email(s)")
-    if entities.invoice_or_order_ids:
-        detected_items.append(f"{len(entities.invoice_or_order_ids)} invoice/order ID(s)")
-    if entities.error_codes:
-        detected_items.append(f"{len(entities.error_codes)} error code(s)")
-    if entities.phone_numbers:
-        detected_items.append(f"{len(entities.phone_numbers)} phone number(s)")
-    if entities.monetary_amounts:
-        detected_items.append(f"{len(entities.monetary_amounts)} amount(s)")
-
-    summary = (
-        f"Detected: {', '.join(detected_items)}."
-        if detected_items
-        else "No specialized entities detected."
-    )
+    summary = build_pipeline_summary(entities)
 
     return AnalyzeTicketResponse(
         entities=entities,
@@ -160,6 +186,7 @@ def analyze_ticket(request: AnalyzeTicketRequest):
         sentiment_hint=sentiment_hint,
         summary=summary,
     )
+
 
 @app.api_route("/{full_path:path}", methods=["GET", "POST", "OPTIONS"])
 async def catch_all_fallback(request: Request, full_path: str):
@@ -171,6 +198,7 @@ async def catch_all_fallback(request: Request, full_path: str):
         except Exception:
             return JSONResponse({"detail": "Invalid request payload"}, status_code=400)
     return {"status": "ok", "service": "goodevadesk-python-nlp", "version": "1.0.0"}
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -317,9 +317,9 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex items-center justify-between text-xs text-cyan-300 animate-pulse">
             <div className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
-              <span>Analyzing ticket entities & sentiment with Python NLP ZeroGPU microservice...</span>
+              <span>Analyzing ticket entities & sentiment with Python NLP microservice...</span>
             </div>
-            <span className="text-[10px] text-cyan-400/70 font-mono">ZeroGPU Space</span>
+            <span className="text-[10px] text-cyan-400/70 font-mono">Python Microservice</span>
           </div>
         )}
 
@@ -437,7 +437,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 <span>
                   <strong className="text-slate-300 font-medium">Pipeline Summary:</strong> {nlpAnalysis.summary}
                 </span>
-                <span className="text-[10px] text-cyan-400 font-mono">ZeroGPU Space</span>
+                <span className="text-[10px] text-cyan-400 font-mono">Python Microservice</span>
               </div>
             )}
           </div>
