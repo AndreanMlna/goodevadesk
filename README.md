@@ -13,17 +13,6 @@
 
 ---
 
-## 📑 Ringkasan Kepatuhan Tugas (HRD Assessment Checklist)
-
-| No | Poin Penilaian HRD | Status | Lokasi / Penjelasan di Dokumen |
-|:---|:---|:---:|:---|
-| 1 | **Cara Menjalankan Project** (Setup DB, Redis, Environment Variable) | ✅ Selesai | [Bagian 1: Panduan Menjalankan Project](#1--panduan-menjalankan-project) |
-| 2 | **Provider LLM yang Dipilih & Alasannya** | ✅ Selesai | [Bagian 2: Provider LLM & Alasan Pemilihan](#2--provider-llm-yang-dipilih-dan-alasannya) |
-| 3 | **Keputusan Desain** (Skema Data, Multi-Tenant, Caching Redis) | ✅ Selesai | [Bagian 3: Keputusan Desain Arsitektur & Data](#3--keputusan-desain-arsitektur-dan-data) |
-| 4 | **Rencana Peningkatan** (Apa yang ditambah jika ada waktu lebih) | ✅ Selesai | [Bagian 4: Rencana Peningkatan Waktu Lebih (Roadmap)](#4--rencana-peningkatan-jika-ada-waktu-lebih-roadmap) |
-| 5 | **Microservice NLP Tambahan (Bonus Bagian D)** | ✅ Selesai | [Bagian 5: Python NLP Microservice](#5--python-nlp-microservice-bonus-bagian-d) |
-
----
 
 ## 1. 🚀 Panduan Menjalankan Project
 
