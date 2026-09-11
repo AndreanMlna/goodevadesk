@@ -54,16 +54,19 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
+    const redisUrl = this.configService.get<string>('REDIS_URL');
     const host = this.configService.get<string>('REDIS_HOST', DEFAULT_REDIS_HOST);
     const port = parseInt(this.configService.get<string>('REDIS_PORT', DEFAULT_REDIS_PORT.toString()), 10);
     const password = this.configService.get<string>('REDIS_PASSWORD') || undefined;
+    const isCloudHost = host.includes('upstash.io') || host.includes('redis.cache.windows.net');
+    const enableTls =
+      this.configService.get<string>('REDIS_TLS') === 'true' ||
+      isCloudHost ||
+      Boolean(redisUrl && redisUrl.startsWith('rediss://'));
 
     try {
-      this.client = new Redis({
-        host,
-        port,
-        password,
-        retryStrategy: (times) => {
+      const redisOptions: any = {
+        retryStrategy: (times: number) => {
           if (times > 3) {
             this.logger.warn('Redis reconnection limit reached, running in non-cached mode');
             return null;
@@ -72,11 +75,26 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
         },
         lazyConnect: true,
         maxRetriesPerRequest: 1,
-      });
+      };
+
+      if (enableTls) {
+        redisOptions.tls = {};
+      }
+
+      if (redisUrl) {
+        this.client = new Redis(redisUrl, redisOptions);
+      } else {
+        this.client = new Redis({
+          ...redisOptions,
+          host,
+          port,
+          password,
+        });
+      }
 
       this.client.on('connect', () => {
         this.isConnected = true;
-        this.logger.log(`Connected to Redis at ${host}:${port}`);
+        this.logger.log(`Connected to Redis at ${redisUrl ? 'REDIS_URL' : `${host}:${port}`} (TLS: ${enableTls})`);
       });
 
       this.client.on('error', (err) => {
