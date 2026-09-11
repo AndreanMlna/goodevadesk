@@ -1,0 +1,143 @@
+# ==============================================================================
+# GoodevaDesk - Production Git Ignore Configuration
+# Comprehensive protection for NestJS + React Vite + Python FastAPI + Docker
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment Variables & Secrets (CRITICAL: Never commit secrets to GitHub)
+# ------------------------------------------------------------------------------
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa*
+secrets/
+
+# ------------------------------------------------------------------------------
+# 2. Dependencies & Package Managers
+# ------------------------------------------------------------------------------
+# Node.js
+**/node_modules/
+.pnp
+.pnp.js
+
+# Python Virtual Environments
+**/.venv/
+**/venv/
+**/env/
+**/ENV/
+
+# ------------------------------------------------------------------------------
+# 3. Build & Compilation Outputs
+# ------------------------------------------------------------------------------
+**/dist/
+**/build/
+**/out/
+*.tsbuildinfo
+.vite/
+**/.vite/
+
+# Python Distribution / Packaging
+*.egg-info/
+*.egg
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# ------------------------------------------------------------------------------
+# 4. Caches & Testing Artifacts
+# ------------------------------------------------------------------------------
+# Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+**/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Node.js & Testing Tools
+.eslintcache
+.stylelintcache
+**/coverage/
+.nyc_output/
+.turbo/
+
+# ------------------------------------------------------------------------------
+# 5. Logs & Runtime Files
+# ------------------------------------------------------------------------------
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------------------------
+# 6. Database & Local Storage
+# ------------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.db-journal
+*.dump
+*.sql.gz
+
+# ------------------------------------------------------------------------------
+# 7. Docker & Local Overrides
+# ------------------------------------------------------------------------------
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ------------------------------------------------------------------------------
+# 8. Local AI Workspace Cache / Assistant Skills
+# ------------------------------------------------------------------------------
+# Ignores local AI coding agent skill scratch folders so only project code is pushed
+.agents/
+
+# ------------------------------------------------------------------------------
+# 9. IDE, Editors & Workspaces
+# ------------------------------------------------------------------------------
+**/.vscode/*
+!**/.vscode/settings.json
+!**/.vscode/extensions.json
+.idea/
+**/.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+*.tmp
+.fleet/
+.cursor/
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# 10. Operating System Metadata
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

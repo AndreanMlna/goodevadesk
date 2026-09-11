@@ -1,0 +1,18 @@
+{
+  "name": "goodevadesk-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GoodevaDesk - Multi-tenant Support Platform with LLM & Redis",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "test": "npm --prefix backend test",
+    "prisma:generate": "npm --prefix backend run prisma:generate",
+    "prisma:push": "npm --prefix backend run prisma:push",
+    "prisma:studio": "npm --prefix backend run prisma:studio"
+  }
+}

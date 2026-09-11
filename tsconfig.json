@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "typeRoots": [
+      "./backend/node_modules/@types"
+    ],
+    "paths": {
+      "@prisma/client": ["backend/node_modules/.prisma/client"],
+      "@prisma/client/*": ["backend/node_modules/.prisma/client/*"],
+      ".prisma/client": ["backend/node_modules/.prisma/client"],
+      ".prisma/client/*": ["backend/node_modules/.prisma/client/*"],
+      "@/*": ["backend/src/*"]
+    }
+  },
+  "include": [
+    "backend/src/**/*",
+    "backend/prisma/**/*",
+    "backend/test/**/*"
+  ]
+}

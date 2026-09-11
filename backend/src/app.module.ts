@@ -1,0 +1,28 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
+import { LlmModule } from './llm/llm.module';
+import { AuthModule } from './auth/auth.module';
+import { TicketsModule } from './tickets/tickets.module';
+import { HealthModule } from './health/health.module';
+import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '../.env'],
+    }),
+    PrismaModule,
+    RedisModule,
+    KnowledgeBaseModule,
+    LlmModule,
+    AuthModule,
+    TicketsModule,
+    HealthModule,
+    AnalyticsModule,
+  ],
+})
+export class AppModule {}

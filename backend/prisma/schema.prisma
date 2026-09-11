@@ -1,0 +1,78 @@
+// ==============================================================================
+// GoodevaDesk - Prisma Schema Definition
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  closed
+}
+
+model Organization {
+  id         String   @id @default(uuid())
+  name       String
+  api_key    String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  tickets Ticket[]
+
+  @@map("organizations")
+}
+
+model Ticket {
+  id              String       @id @default(uuid())
+  organization_id String
+  customer_email  String
+  subject         String
+  message         String       @db.Text
+  category        String?      // e.g. "billing", "technical", "general"
+  suggested_reply String?      @db.Text
+  status          TicketStatus @default(open)
+  
+  // Smart SLA Triage & AI Sentiment Analytics (Enterprise Extensions)
+  priority        String       @default("normal") // "critical", "high", "normal", "low"
+  sla_deadline    DateTime?
+  sentiment       String?      // "positive", "neutral", "frustrated", "angry"
+  urgency_score   Float?       // 0.0 to 1.0
+  grounding_doc   String?      // Reference to grounded SOP document
+
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+
+  organization Organization     @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  feedbacks    TicketFeedback[]
+
+  // Indexes optimized for multi-tenant query patterns & filtering
+  @@index([organization_id])
+  @@index([organization_id, status])
+  @@index([organization_id, category])
+  @@index([organization_id, priority])
+  @@index([created_at])
+  @@map("tickets")
+}
+
+model TicketFeedback {
+  id              String   @id @default(uuid())
+  ticket_id       String
+  organization_id String
+  rating          String   // "thumbs_up" | "thumbs_down"
+  edited_reply    String?  @db.Text
+  agent_notes     String?  @db.Text
+  created_at      DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+
+  @@index([ticket_id])
+  @@index([organization_id])
+  @@map("ticket_feedbacks")
+}
