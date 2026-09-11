@@ -33,18 +33,277 @@
   transform: translateY(-1px);
 }
 
+/* Stitch Design System: Glass Card */
+.glass-card {
+  background: #111827;
+  border: 1px solid rgba(51, 65, 85, 0.65);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
 /* Custom subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: #0b1120;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: #1e293b;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: #334155;
 }
+
+/* ========================================================= */
+/* LIGHT THEME DESIGN SYSTEM OVERRIDES (HIGH-CONTRAST & DEPTH)*/
+/* ========================================================= */
+html.light body {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Background Canvas Layer */
+html.light .bg-\[\#0b1120\],
+html.light .bg-\[\#090e1a\],
+html.light .bg-\[\#090d16\],
+html.light .bg-\[\#080808\] {
+  background-color: #f1f5f9 !important;
+}
+
+/* Tenant Banner */
+html.light .bg-\[\#0d1322\]\/80 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Sidebar & Header */
+html.light aside {
+  background-color: #f8fafc !important;
+  border-right-color: #cbd5e1 !important;
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: #cbd5e1 !important;
+}
+
+/* Glass Cards & Panels (Elevated pure white on Slate-100 Canvas) */
+html.light .glass-card,
+html.light .glass-panel,
+html.light .glass-panel-interactive,
+html.light .bg-\[\#111827\],
+html.light .bg-\[\#111827\]\/80,
+html.light .bg-\[\#0f172a\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.light .glass-card:hover,
+html.light .glass-panel-interactive:hover {
+  background-color: #ffffff !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 10px 20px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Nested Boxes (Quotes, Code, Message previews) */
+html.light .bg-\[\#090d16\]\/80,
+html.light .bg-\[\#090d16\]\/70,
+html.light .bg-\[\#0d121f\] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Borders */
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/60,
+html.light .border-slate-700,
+html.light .border-slate-700\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Secondary Slate Elements (Pills, Buttons, Filters) */
+html.light .bg-slate-900,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-800,
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/60 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Status & Filter Buttons */
+html.light button.bg-slate-900 {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+html.light button.bg-slate-900:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Typography & Contrast */
+html.light .text-white,
+html.light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Badges High-Contrast Readability (Rich semantic tones, not washed out) */
+html.light .bg-rose-500\/20,
+html.light .bg-rose-500\/10,
+html.light .bg-rose-950\/70,
+html.light .bg-rose-950\/80 {
+  background-color: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+}
+html.light .text-rose-300,
+html.light .text-rose-400 {
+  color: #be123c !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-amber-500\/20,
+html.light .bg-amber-500\/10,
+html.light .bg-amber-950\/60,
+html.light .bg-amber-950\/80 {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+}
+html.light .text-amber-300,
+html.light .text-amber-400 {
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-blue-500\/20,
+html.light .bg-blue-500\/10 {
+  background-color: #dbeafe !important;
+  border-color: #bfdbfe !important;
+}
+html.light .text-blue-300,
+html.light .text-blue-400 {
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-cyan-500\/10 {
+  background-color: #cffafe !important;
+  border-color: #a5f3fc !important;
+}
+html.light .text-cyan-300 {
+  color: #0e7490 !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-purple-500\/10 {
+  background-color: #f3e8ff !important;
+  border-color: #e9d5ff !important;
+}
+html.light .text-purple-300,
+html.light .text-purple-400 {
+  color: #6d28d9 !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-emerald-500\/10,
+html.light .bg-emerald-950\/60 {
+  background-color: #d1fae5 !important;
+  border-color: #a7f3d0 !important;
+}
+html.light .text-emerald-300,
+html.light .text-emerald-400 {
+  color: #047857 !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-slate-500\/20 {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Inputs, Selects, and Textareas */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #3b82f6 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15) !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Progress bar tracks */
+html.light .w-full.bg-slate-900,
+html.light .w-full.bg-slate-800 {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Hover States */
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-800\/60:hover,
+html.light .hover\:bg-slate-900:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Modals & Dropdowns Popovers */
+html.light .z-50.bg-\[\#111827\],
+html.light .z-50.bg-\[\#0f172a\],
+html.light .z-50 .bg-\[\#111827\],
+html.light .z-50 .bg-\[\#0f172a\] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Scrollbars in Light Mode */
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+
+

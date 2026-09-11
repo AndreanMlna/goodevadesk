@@ -91,19 +91,35 @@ export async function updateTicketStatus(
   return res.json();
 }
 
+let isNlpServiceAvailable: boolean | null = null;
+let lastNlpCheckTime = 0;
+const NLP_CHECK_COOLDOWN_MS = 15000;
+
 export async function analyzeWithPythonNlp(
   subject: string,
   message: string,
 ): Promise<NlpAnalysisResult | null> {
+  const now = Date.now();
+  if (isNlpServiceAvailable === false && now - lastNlpCheckTime < NLP_CHECK_COOLDOWN_MS) {
+    return null;
+  }
+
   try {
     const res = await fetch(`${NLP_BASE_URL}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subject, message }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      isNlpServiceAvailable = false;
+      lastNlpCheckTime = now;
+      return null;
+    }
+    isNlpServiceAvailable = true;
     return await res.json();
   } catch {
+    isNlpServiceAvailable = false;
+    lastNlpCheckTime = now;
     return null; // Graceful failure if NLP service is not running locally
   }
 }

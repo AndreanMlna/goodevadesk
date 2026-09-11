@@ -12,6 +12,8 @@ import {
   Frown,
   Meh,
   ShieldAlert,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import { AnalyticsSummaryResponse } from '../types';
 import { formatDeadline } from '../constants';
@@ -245,6 +247,7 @@ export const ExecutiveAnalytics: React.FC<ExecutiveAnalyticsProps> = ({
                   <th className="p-3">Customer</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Priority</th>
+                  <th className="p-3">Status</th>
                   <th className="p-3">Urgency Score</th>
                   <th className="p-3">SLA Status</th>
                   <th className="p-3 text-right">Action</th>
@@ -252,23 +255,50 @@ export const ExecutiveAnalytics: React.FC<ExecutiveAnalyticsProps> = ({
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {analyticsData.critical_tickets.map((t) => {
-                  const deadline = formatDeadline(t.sla_deadline);
+                  const deadline = t.status === 'closed' ? null : formatDeadline(t.sla_deadline);
                   return (
-                    <tr key={t.id} className="hover:bg-slate-800/30">
+                    <tr key={t.id} className="hover:bg-slate-800/30 transition">
                       <td className="p-3 font-semibold text-white max-w-xs truncate">{t.subject}</td>
                       <td className="p-3 text-slate-400">{t.customer_email}</td>
                       <td className="p-3 capitalize">{t.category || 'general'}</td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                            t.priority === 'critical'
+                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                          }`}
+                        >
                           {t.priority}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                            t.status === 'closed'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                              : t.status === 'in_progress'
+                              ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                          }`}
+                        >
+                          {t.status.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="p-3 font-mono font-bold text-amber-300">{t.urgency_score || 80}/100</td>
                       <td className="p-3">
-                        {deadline?.isBreached ? (
-                          <span className="text-rose-400 font-bold">Breached</span>
+                        {t.status === 'closed' ? (
+                          <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Resolved
+                          </span>
+                        ) : deadline?.isBreached ? (
+                          <span className="text-rose-400 font-bold flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" /> Breached
+                          </span>
                         ) : (
-                          <span className="text-amber-300">{deadline?.text || 'Urgent'}</span>
+                          <span className="text-amber-300 flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" /> {deadline?.text || 'Urgent'}
+                          </span>
                         )}
                       </td>
                       <td className="p-3 text-right">

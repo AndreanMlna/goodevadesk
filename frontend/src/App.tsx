@@ -16,15 +16,18 @@ import {
   submitTicketFeedback,
 } from './api';
 import { DEFAULT_TENANTS } from './constants';
-import { Navbar } from './components/Navbar';
-import { TenantBanner } from './components/TenantBanner';
+import { Sidebar } from './components/Sidebar';
+import { HeaderBar } from './components/HeaderBar';
+import { SettingsModal } from './components/SettingsModal';
 import { TicketDesk } from './components/TicketDesk';
 import { ExecutiveAnalytics } from './components/ExecutiveAnalytics';
 import { TicketDetailModal } from './components/TicketDetailModal';
 import { CreateTicketModal } from './components/CreateTicketModal';
+import { KnowledgeShelfView } from './components/KnowledgeShelfView';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'desk' | 'analytics'>('desk');
+  const [activeTab, setActiveTab] = useState<'desk' | 'analytics' | 'shelf'>('desk');
 
   const [selectedTenant, setSelectedTenant] = useState<OrganizationTenant>(DEFAULT_TENANTS[0]);
   const [customApiKey, setCustomApiKey] = useState('');
@@ -41,24 +44,38 @@ export default function App() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [copiedReply, setCopiedReply] = useState(false);
-
-  const [isApproving, setIsApproving] = useState(false);
-  const [approvalSuccess, setApprovalSuccess] = useState(false);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState<'thumbs_up' | 'thumbs_down' | null>(null);
-  const [feedbackNotes, setFeedbackNotes] = useState('');
-  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
 
   const [analyticsData, setAnalyticsData] = useState<AnalyticsSummaryResponse | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
-  const [newCustomerEmail, setNewCustomerEmail] = useState('');
-  const [newSubject, setNewSubject] = useState('');
-  const [newMessage, setNewMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [nlpAnalysis, setNlpAnalysis] = useState<NlpAnalysisResult | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('goodevadesk_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    }
+    localStorage.setItem('goodevadesk_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
@@ -119,27 +136,19 @@ export default function App() {
     setApiKey(customApiKey.trim());
   };
 
-  const handleCreateTicket = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubject || !newMessage || !newCustomerEmail) return;
-
-    setIsSubmitting(true);
+  const handleCreateTicket = async (ticketData: {
+    customer_email: string;
+    subject: string;
+    message: string;
+  }) => {
     try {
-      const created = await createTicket(apiKey, {
-        customer_email: newCustomerEmail,
-        subject: newSubject,
-        message: newMessage,
-      });
+      const created = await createTicket(apiKey, ticketData);
       setIsCreateModalOpen(false);
-      setNewSubject('');
-      setNewMessage('');
-      setNewCustomerEmail('');
       await loadTickets();
       setSelectedTicket(created);
     } catch (err: any) {
       alert(`Ticket creation failed: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
+      throw err;
     }
   };
 
@@ -157,54 +166,28 @@ export default function App() {
 
   const handleApproveReply = async () => {
     if (!selectedTicket) return;
-    setIsApproving(true);
-    try {
-      const updated = await approveTicketReply(apiKey, selectedTicket.id);
-      setSelectedTicket(updated);
-      setTickets((prev: Ticket[]) => prev.map((t: Ticket) => (t.id === updated.id ? updated : t)));
-      setApprovalSuccess(true);
-      setTimeout(() => setApprovalSuccess(false), 3000);
-    } catch (err: any) {
-      alert(`Reply approval failed: ${err.message}`);
-    } finally {
-      setIsApproving(false);
-    }
+    const updated = await approveTicketReply(apiKey, selectedTicket.id);
+    setSelectedTicket(updated);
+    setTickets((prev: Ticket[]) => prev.map((t: Ticket) => (t.id === updated.id ? updated : t)));
   };
 
-  const handleFeedback = async (rating: 'thumbs_up' | 'thumbs_down') => {
+  const handleFeedback = async (rating: 'thumbs_up' | 'thumbs_down', notes?: string) => {
     if (!selectedTicket) return;
-    try {
-      await submitTicketFeedback(apiKey, selectedTicket.id, {
-        rating,
-        notes: feedbackNotes.trim() || undefined,
-      });
-      setFeedbackSubmitted(rating);
-      setShowFeedbackInput(false);
-      setFeedbackNotes('');
-      setTimeout(() => setFeedbackSubmitted(null), 4000);
-    } catch (err: any) {
-      alert(`Feedback submission failed: ${err.message}`);
-    }
+    await submitTicketFeedback(apiKey, selectedTicket.id, {
+      rating,
+      notes,
+    });
   };
 
   useEffect(() => {
     if (!selectedTicket) {
       setNlpAnalysis(null);
-      setFeedbackSubmitted(null);
-      setShowFeedbackInput(false);
-      setFeedbackNotes('');
       return;
     }
     analyzeWithPythonNlp(selectedTicket.subject, selectedTicket.message)
       .then((res) => setNlpAnalysis(res))
       .catch(() => setNlpAnalysis(null));
   }, [selectedTicket]);
-
-  const copySuggestedReply = (reply: string) => {
-    navigator.clipboard.writeText(reply);
-    setCopiedReply(true);
-    setTimeout(() => setCopiedReply(false), 2000);
-  };
 
   const filteredTickets = tickets.filter((t) => {
     if (priorityFilter === 'all') return true;
@@ -219,6 +202,15 @@ export default function App() {
     critical: tickets.filter((t: Ticket) => t.priority === 'critical').length,
   };
 
+  // Urgent alerts for notification bell: only active, unresolved tickets with critical priority OR breached SLA
+  const now = new Date();
+  const urgentAlertTickets = tickets.filter(
+    (t) =>
+      t.status !== 'closed' &&
+      ((t.priority || 'normal') === 'critical' ||
+        Boolean(t.sla_deadline && now > new Date(t.sla_deadline)))
+  );
+
   const handleSelectTicketById = async (id: string) => {
     const found = tickets.find((tk) => tk.id === id);
     if (found) {
@@ -231,71 +223,111 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col">
-      <Navbar
+    <div
+      className={`flex h-screen overflow-hidden ${
+        theme === 'light' ? 'bg-[#f1f5f9] text-slate-900' : 'bg-[#0b1120] text-slate-100'
+      } selection:bg-blue-600/30 selection:text-blue-200`}
+    >
+      {/* 1. LEFT SIDEBAR NAVIGATION */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         selectedTenant={selectedTenant}
         onTenantChange={handleTenantChange}
-        customApiKey={customApiKey}
-        setCustomApiKey={setCustomApiKey}
-        onCustomKeySubmit={handleCustomKeySubmit}
-        onRefresh={() => {
-          if (activeTab === 'desk') loadTickets();
-          else loadAnalytics();
-        }}
-        isLoading={loading || loadingAnalytics}
-        criticalCount={stats.critical}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        tenants={DEFAULT_TENANTS}
+        openTicketCount={stats.open}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        theme={theme}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
-        <TenantBanner selectedTenant={selectedTenant} apiKey={apiKey} />
+      {/* 2. RIGHT MAIN CONTENT AREA */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 overflow-y-auto h-screen ${
+          theme === 'light' ? 'bg-[#f1f5f9]' : 'bg-[#0b1120]'
+        }`}
+      >
+        <HeaderBar
+          activeTab={activeTab}
+          selectedTenant={selectedTenant}
+          ticketCount={tickets.length}
+          criticalCount={urgentAlertTickets.length}
+          criticalTickets={urgentAlertTickets}
+          onSelectTicket={setSelectedTicket}
+          onFilterCritical={() => {
+            setActiveTab('desk');
+            setPriorityFilter('critical');
+          }}
+          onRefresh={() => {
+            if (activeTab === 'desk') loadTickets();
+            else if (activeTab === 'analytics') loadAnalytics();
+          }}
+          isLoading={loading || loadingAnalytics}
+          onOpenCreateModal={() => setIsCreateModalOpen(true)}
+          onOpenSettings={() => setIsSettingsModalOpen(true)}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
 
-        {activeTab === 'desk' ? (
-          <TicketDesk
-            filteredTickets={filteredTickets}
-            loading={loading}
-            error={error}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            categoryFilter={categoryFilter}
-            setCategoryFilter={setCategoryFilter}
-            priorityFilter={priorityFilter}
-            setPriorityFilter={setPriorityFilter}
-            stats={stats}
-            onSelectTicket={setSelectedTicket}
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
-            onRetry={loadTickets}
-          />
-        ) : (
-          <ExecutiveAnalytics
-            analyticsData={analyticsData}
-            loading={loadingAnalytics}
-            error={analyticsError}
-            onRetry={loadAnalytics}
-            onSelectTicketById={handleSelectTicketById}
-          />
-        )}
-      </main>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 pb-24 md:pb-8 space-y-6 max-w-7xl w-full mx-auto">
+          {activeTab === 'desk' && (
+            <TicketDesk
+              filteredTickets={filteredTickets}
+              allTickets={tickets}
+              loading={loading}
+              error={error}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+              priorityFilter={priorityFilter}
+              setPriorityFilter={setPriorityFilter}
+              stats={stats}
+              onSelectTicket={setSelectedTicket}
+              onOpenCreateModal={() => setIsCreateModalOpen(true)}
+              onRetry={loadTickets}
+              onNavigateToShelf={() => setActiveTab('shelf')}
+            />
+          )}
 
+          {activeTab === 'analytics' && (
+            <ExecutiveAnalytics
+              analyticsData={analyticsData}
+              loading={loadingAnalytics}
+              error={analyticsError}
+              onRetry={loadAnalytics}
+              onSelectTicketById={handleSelectTicketById}
+            />
+          )}
+
+          {activeTab === 'shelf' && <KnowledgeShelfView />}
+        </main>
+      </div>
+
+      {/* 3. MOBILE BOTTOM NAVIGATION BAR (FIXED ON MOBILE < md) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        openTicketCount={stats.open}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onQuickAiTriage={() => {
+          setActiveTab('desk');
+          setCategoryFilter('all');
+          setPriorityFilter('critical');
+        }}
+        theme={theme}
+      />
+
+      {/* 4. MODAL DIALOGS */}
       <TicketDetailModal
         ticket={selectedTicket}
         onClose={() => setSelectedTicket(null)}
         onStatusUpdate={handleStatusUpdate}
         onApproveReply={handleApproveReply}
-        isApproving={isApproving}
-        approvalSuccess={approvalSuccess}
         onFeedback={handleFeedback}
-        feedbackSubmitted={feedbackSubmitted}
-        feedbackNotes={feedbackNotes}
-        setFeedbackNotes={setFeedbackNotes}
-        showFeedbackInput={showFeedbackInput}
-        setShowFeedbackInput={setShowFeedbackInput}
-        copiedReply={copiedReply}
-        onCopyReply={copySuggestedReply}
         nlpAnalysis={nlpAnalysis}
       />
 
@@ -304,13 +336,18 @@ export default function App() {
         onClose={() => setIsCreateModalOpen(false)}
         tenantName={selectedTenant.name}
         onSubmit={handleCreateTicket}
-        customerEmail={newCustomerEmail}
-        setCustomerEmail={setNewCustomerEmail}
-        subject={newSubject}
-        setSubject={setNewSubject}
-        message={newMessage}
-        setMessage={setNewMessage}
-        isSubmitting={isSubmitting}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        selectedTenant={selectedTenant}
+        onTenantChange={handleTenantChange}
+        tenants={DEFAULT_TENANTS}
+        customApiKey={customApiKey}
+        setCustomApiKey={setCustomApiKey}
+        onCustomKeySubmit={handleCustomKeySubmit}
+        currentApiKey={apiKey}
       />
     </div>
   );

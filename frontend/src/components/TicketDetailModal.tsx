@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Flame,
@@ -12,6 +12,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Cpu,
+  CheckCircle2,
 } from 'lucide-react';
 import { Ticket, TicketStatus, NlpAnalysisResult } from '../types';
 import {
@@ -25,16 +26,7 @@ interface TicketDetailModalProps {
   onClose: () => void;
   onStatusUpdate: (id: string, newStatus: TicketStatus) => Promise<void>;
   onApproveReply: () => Promise<void>;
-  isApproving: boolean;
-  approvalSuccess: boolean;
-  onFeedback: (rating: 'thumbs_up' | 'thumbs_down') => Promise<void>;
-  feedbackSubmitted: 'thumbs_up' | 'thumbs_down' | null;
-  feedbackNotes: string;
-  setFeedbackNotes: (notes: string) => void;
-  showFeedbackInput: boolean;
-  setShowFeedbackInput: (show: boolean) => void;
-  copiedReply: boolean;
-  onCopyReply: (reply: string) => void;
+  onFeedback: (rating: 'thumbs_up' | 'thumbs_down', notes?: string) => Promise<void>;
   nlpAnalysis: NlpAnalysisResult | null;
 }
 
@@ -43,24 +35,62 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   onClose,
   onStatusUpdate,
   onApproveReply,
-  isApproving,
-  approvalSuccess,
   onFeedback,
-  feedbackSubmitted,
-  feedbackNotes,
-  setFeedbackNotes,
-  showFeedbackInput,
-  setShowFeedbackInput,
-  copiedReply,
-  onCopyReply,
   nlpAnalysis,
 }) => {
+  const [isApproving, setIsApproving] = useState(false);
+  const [approvalSuccess, setApprovalSuccess] = useState(false);
+  const [copiedReply, setCopiedReply] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<'thumbs_up' | 'thumbs_down' | null>(null);
+  const [feedbackNotes, setFeedbackNotes] = useState('');
+  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+
+  // Reset internal modal interaction states whenever selected ticket changes
+  useEffect(() => {
+    setFeedbackSubmitted(null);
+    setShowFeedbackInput(false);
+    setFeedbackNotes('');
+    setApprovalSuccess(false);
+    setCopiedReply(false);
+  }, [ticket?.id]);
+
   if (!ticket) return null;
 
   const deadlineInfo = formatDeadline(ticket.sla_deadline);
   const isCritical = ticket.priority === 'critical';
   const priorityStyle = PRIORITY_STYLES[ticket.priority || 'normal'] || PRIORITY_STYLES.normal;
   const categoryStyle = ticket.category ? CATEGORY_STYLES[ticket.category] || CATEGORY_STYLES.general : '';
+
+  const handleCopyReply = (reply: string) => {
+    navigator.clipboard.writeText(reply);
+    setCopiedReply(true);
+    setTimeout(() => setCopiedReply(false), 2000);
+  };
+
+  const handleApprove = async () => {
+    setIsApproving(true);
+    try {
+      await onApproveReply();
+      setApprovalSuccess(true);
+      setTimeout(() => setApprovalSuccess(false), 3000);
+    } catch (err: any) {
+      alert(`Reply approval failed: ${err.message}`);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleFeedbackClick = async (rating: 'thumbs_up' | 'thumbs_down') => {
+    try {
+      await onFeedback(rating, feedbackNotes.trim() || undefined);
+      setFeedbackSubmitted(rating);
+      setShowFeedbackInput(false);
+      setFeedbackNotes('');
+      setTimeout(() => setFeedbackSubmitted(null), 4000);
+    } catch (err: any) {
+      alert(`Feedback submission failed: ${err.message}`);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
@@ -105,15 +135,32 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
         {/* SLA Target Banner */}
         {ticket.sla_deadline && (
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs">
+          <div
+            className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
+              ticket.status === 'closed'
+                ? 'bg-emerald-950/20 border-emerald-500/30'
+                : deadlineInfo?.isBreached
+                ? 'bg-slate-900/80 border-slate-800'
+                : 'bg-slate-900/80 border-slate-800'
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-purple-400" />
+              {ticket.status === 'closed' ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <Clock className="w-4 h-4 text-purple-400" />
+              )}
               <span className="text-slate-300 font-medium">SLA Resolution Target:</span>
               <span className="font-mono text-purple-200">
                 {new Date(ticket.sla_deadline).toLocaleString()}
               </span>
             </div>
-            {deadlineInfo?.isBreached ? (
+            {ticket.status === 'closed' ? (
+              <span className="text-emerald-400 font-bold px-2.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                SLA Resolved (Closed)
+              </span>
+            ) : deadlineInfo?.isBreached ? (
               <span className="text-rose-400 font-bold px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/30">
                 SLA Breached
               </span>
@@ -167,7 +214,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             </div>
             {ticket.suggested_reply && (
               <button
-                onClick={() => onCopyReply(ticket.suggested_reply!)}
+                onClick={() => handleCopyReply(ticket.suggested_reply!)}
                 className="flex items-center gap-1 text-xs px-2.5 py-1 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 rounded-lg transition"
               >
                 {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -189,7 +236,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             <div className="pt-2 border-t border-purple-500/20 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={onApproveReply}
+                  onClick={handleApprove}
                   disabled={isApproving || approvalSuccess}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50"
                 >
@@ -216,7 +263,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-slate-400 text-[11px]">AI Quality Feedback:</span>
                 <button
-                  onClick={() => onFeedback('thumbs_up')}
+                  onClick={() => handleFeedbackClick('thumbs_up')}
                   className={`p-1.5 rounded-lg border transition ${
                     feedbackSubmitted === 'thumbs_up'
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
@@ -257,7 +304,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 className="w-full bg-[#090d16] border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500"
               />
               <button
-                onClick={() => onFeedback('thumbs_down')}
+                onClick={() => handleFeedbackClick('thumbs_down')}
                 className="px-3 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold"
               >
                 Submit Correction

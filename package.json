@@ -7,10 +7,12 @@
     "dev": "npm --prefix frontend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run start:dev",
+    "dev:nlp": "py -3.11 -m uvicorn main:app --reload --port 8000 --app-dir python-nlp",
     "build": "npm --prefix backend run build && npm --prefix frontend run build",
     "build:backend": "npm --prefix backend run build",
     "build:frontend": "npm --prefix frontend run build",
     "test": "npm --prefix backend test",
+    "test:nlp": "py -3.11 -m pytest python-nlp/test_nlp.py",
     "prisma:generate": "npm --prefix backend run prisma:generate",
     "prisma:push": "npm --prefix backend run prisma:push",
     "prisma:studio": "npm --prefix backend run prisma:studio"
