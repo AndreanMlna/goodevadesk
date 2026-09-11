@@ -315,25 +315,121 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
         {/* Python NLP Section */}
         {nlpAnalysis && (
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between text-xs">
+          <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3 shadow-inner">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="font-bold text-cyan-400 flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5" /> Python NLP Microservice Analysis (Bonus)
+                <Cpu className="w-4 h-4 text-cyan-400" /> Python NLP Microservice Analysis (Bonus)
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">
-                Category: {nlpAnalysis.predicted_category} ({Math.round(nlpAnalysis.confidence * 100)}%)
-              </span>
-            </div>
-            <div className="text-xs text-slate-300 grid grid-cols-2 gap-2 mt-2">
-              <div className="bg-black/30 p-2 rounded-lg">
-                <span className="text-slate-500 block text-[10px]">EXTRACTED EMAILS</span>
-                {nlpAnalysis.entities.emails.length > 0 ? nlpAnalysis.entities.emails.join(', ') : 'None detected'}
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-800/50 uppercase">
+                  Category: {nlpAnalysis.predicted_category} ({Math.round(nlpAnalysis.confidence * 100)}%)
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${
+                    nlpAnalysis.urgency === 'high'
+                      ? 'bg-rose-950/50 text-rose-300 border-rose-800/40'
+                      : nlpAnalysis.urgency === 'medium'
+                      ? 'bg-amber-950/50 text-amber-300 border-amber-800/40'
+                      : 'bg-slate-800 text-slate-300 border-slate-700'
+                  }`}
+                >
+                  Urgency: {nlpAnalysis.urgency}
+                </span>
               </div>
-              <div className="bg-black/30 p-2 rounded-lg">
-                <span className="text-slate-500 block text-[10px]">ORDER / INVOICE IDS</span>
-                {nlpAnalysis.entities.invoice_or_order_ids.length > 0 ? nlpAnalysis.entities.invoice_or_order_ids.join(', ') : 'None detected'}
+            </div>
+
+            <div className="text-xs text-slate-300 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
+                <span className="text-slate-500 block text-[10px] font-medium tracking-wide">EXTRACTED EMAILS</span>
+                <span
+                  className={
+                    nlpAnalysis.entities.emails?.length > 0
+                      ? 'text-cyan-300 font-mono font-medium text-[11px] break-all'
+                      : 'text-slate-500 italic text-[11px]'
+                  }
+                >
+                  {nlpAnalysis.entities.emails?.length > 0
+                    ? nlpAnalysis.entities.emails.join(', ')
+                    : 'None detected'}
+                </span>
+              </div>
+
+              <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
+                <span className="text-slate-500 block text-[10px] font-medium tracking-wide">ORDER / INVOICE IDS</span>
+                <span
+                  className={
+                    nlpAnalysis.entities.invoice_or_order_ids?.length > 0
+                      ? 'text-purple-300 font-mono font-medium text-[11px]'
+                      : 'text-slate-500 italic text-[11px]'
+                  }
+                >
+                  {nlpAnalysis.entities.invoice_or_order_ids?.length > 0
+                    ? nlpAnalysis.entities.invoice_or_order_ids.join(', ')
+                    : 'None detected'}
+                </span>
+              </div>
+
+              <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
+                <span className="text-slate-500 block text-[10px] font-medium tracking-wide">PHONE NUMBERS</span>
+                <span
+                  className={
+                    nlpAnalysis.entities.phone_numbers?.length > 0
+                      ? 'text-emerald-300 font-mono font-medium text-[11px]'
+                      : 'text-slate-500 italic text-[11px]'
+                  }
+                >
+                  {nlpAnalysis.entities.phone_numbers?.length > 0
+                    ? nlpAnalysis.entities.phone_numbers.join(', ')
+                    : 'None detected'}
+                </span>
+              </div>
+
+              <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
+                <span className="text-slate-500 block text-[10px] font-medium tracking-wide">SYSTEM ERROR CODES</span>
+                <span
+                  className={
+                    nlpAnalysis.entities.error_codes?.length > 0
+                      ? 'text-rose-300 font-mono font-semibold text-[11px]'
+                      : 'text-slate-500 italic text-[11px]'
+                  }
+                >
+                  {nlpAnalysis.entities.error_codes?.length > 0
+                    ? nlpAnalysis.entities.error_codes.join(', ')
+                    : 'None detected'}
+                </span>
+              </div>
+
+              <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
+                <span className="text-slate-500 block text-[10px] font-medium tracking-wide">MONETARY AMOUNTS</span>
+                <span
+                  className={
+                    nlpAnalysis.entities.monetary_amounts?.length > 0
+                      ? 'text-amber-300 font-mono font-medium text-[11px]'
+                      : 'text-slate-500 italic text-[11px]'
+                  }
+                >
+                  {nlpAnalysis.entities.monetary_amounts?.length > 0
+                    ? nlpAnalysis.entities.monetary_amounts.join(', ')
+                    : 'None detected'}
+                </span>
+              </div>
+
+              <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
+                <span className="text-slate-500 block text-[10px] font-medium tracking-wide">SENTIMENT POLARITY</span>
+                <span className="text-slate-300 font-medium text-[11px] capitalize">
+                  {nlpAnalysis.sentiment_hint || 'neutral'}
+                </span>
               </div>
             </div>
+
+            {nlpAnalysis.summary && (
+              <div className="text-[11px] text-slate-400 bg-slate-950/40 px-3 py-1.5 rounded-lg border border-slate-800/60 flex items-center justify-between">
+                <span>
+                  <strong className="text-slate-300 font-medium">Pipeline Summary:</strong> {nlpAnalysis.summary}
+                </span>
+                <span className="text-[10px] text-cyan-400 font-mono">FastAPI :8000</span>
+              </div>
+            )}
           </div>
         )}
 

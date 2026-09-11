@@ -32,3 +32,18 @@ def test_analyze_technical_ticket():
     assert data["predicted_category"] == "technical"
     assert "504" in data["entities"]["error_codes"]
     assert data["urgency"] == "high"
+
+def test_analyze_with_customer_email_and_local_entities():
+    payload = {
+        "customer_email": "azharzuhro74@gmail.com",
+        "subject": "error order and payment",
+        "message": "please fix it because i have ordered and paid the ticket Rp 150.000, call 08123456789",
+    }
+    response = client.post("/analyze", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["predicted_category"] == "billing"
+    assert "azharzuhro74@gmail.com" in data["entities"]["emails"]
+    assert any("150.000" in m for m in data["entities"]["monetary_amounts"])
+    assert len(data["entities"]["phone_numbers"]) > 0
+

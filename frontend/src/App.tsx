@@ -184,7 +184,11 @@ export default function App() {
       setNlpAnalysis(null);
       return;
     }
-    analyzeWithPythonNlp(selectedTicket.subject, selectedTicket.message)
+    analyzeWithPythonNlp(
+      selectedTicket.subject,
+      selectedTicket.message,
+      selectedTicket.customer_email,
+    )
       .then((res) => setNlpAnalysis(res))
       .catch(() => setNlpAnalysis(null));
   }, [selectedTicket]);

@@ -98,6 +98,7 @@ const NLP_CHECK_COOLDOWN_MS = 15000;
 export async function analyzeWithPythonNlp(
   subject: string,
   message: string,
+  customerEmail?: string,
 ): Promise<NlpAnalysisResult | null> {
   const now = Date.now();
   if (isNlpServiceAvailable === false && now - lastNlpCheckTime < NLP_CHECK_COOLDOWN_MS) {
@@ -108,7 +109,11 @@ export async function analyzeWithPythonNlp(
     const res = await fetch(`${NLP_BASE_URL}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject, message }),
+      body: JSON.stringify({
+        subject,
+        message,
+        customer_email: customerEmail,
+      }),
     });
     if (!res.ok) {
       isNlpServiceAvailable = false;
