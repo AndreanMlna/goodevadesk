@@ -18,15 +18,25 @@ async function bootstrap() {
   );
 
   // 2. CORS Setup
-  const origins = process.env.CORS_ORIGINS
+  const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
     : ['http://localhost:5173', 'http://localhost:3000'];
 
   app.enableCors({
-    origin: origins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Accept', 'x-api-key', 'X-API-KEY'],
+    allowedHeaders: ['Content-Type', 'Accept', 'x-api-key', 'X-API-KEY', 'Authorization'],
   });
 
   // 3. Global Pipes & Filters
