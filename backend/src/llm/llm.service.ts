@@ -2,10 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
 import {
+  LlmProvider,
+  resolveLlmProvider,
+  resolveGeminiModel,
+  resolveOpenAiModel,
+  resolveAnthropicModel,
   DEFAULT_LLM_TIMEOUT_MS,
-  DEFAULT_OPENAI_MODEL,
-  DEFAULT_ANTHROPIC_MODEL,
-  DEFAULT_GEMINI_MODEL,
   DEFAULT_LLM_MAX_TOKENS,
   DEFAULT_LLM_TEMPERATURE,
   BILLING_KEYWORDS,
@@ -28,14 +30,14 @@ export interface LlmClassificationResult {
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
-  private readonly provider: string;
+  private readonly provider: LlmProvider;
   private readonly timeoutMs = DEFAULT_LLM_TIMEOUT_MS;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly kbService: KnowledgeBaseService,
   ) {
-    this.provider = this.configService.get<string>('LLM_PROVIDER', 'mock').toLowerCase();
+    this.provider = resolveLlmProvider(this.configService.get<string>('LLM_PROVIDER'));
   }
 
   getSystemPrompt(sopContext?: string): string {
@@ -90,11 +92,11 @@ ${message}`;
     const sopContext = `OFFICIAL POLICY (${sop.docId} - ${sop.title}):\n${sop.excerpt}`;
 
     try {
-      if (this.provider === 'openai' && openaiKey) {
+      if (this.provider === LlmProvider.OPENAI && openaiKey) {
         return await this.callOpenAi(subject, message, openaiKey, sop.docId, sopContext);
-      } else if (this.provider === 'anthropic' && anthropicKey) {
+      } else if (this.provider === LlmProvider.ANTHROPIC && anthropicKey) {
         return await this.callAnthropic(subject, message, anthropicKey, sop.docId, sopContext);
-      } else if (this.provider === 'gemini' && geminiKey) {
+      } else if (this.provider === LlmProvider.GEMINI && geminiKey) {
         return await this.callGemini(subject, message, geminiKey, sop.docId, sopContext);
       }
     } catch (error: any) {
@@ -111,7 +113,7 @@ ${message}`;
     sopDocId: string,
     sopContext: string,
   ): Promise<LlmClassificationResult> {
-    const model = this.configService.get<string>('OPENAI_MODEL', DEFAULT_OPENAI_MODEL);
+    const model = resolveOpenAiModel(this.configService.get<string>('OPENAI_MODEL'));
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -166,7 +168,7 @@ ${message}`;
     sopDocId: string,
     sopContext: string,
   ): Promise<LlmClassificationResult> {
-    const model = this.configService.get<string>('ANTHROPIC_MODEL', DEFAULT_ANTHROPIC_MODEL);
+    const model = resolveAnthropicModel(this.configService.get<string>('ANTHROPIC_MODEL'));
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -224,7 +226,7 @@ ${message}`;
     sopDocId: string,
     sopContext: string,
   ): Promise<LlmClassificationResult> {
-    const model = this.configService.get<string>('GEMINI_MODEL', DEFAULT_GEMINI_MODEL);
+    const model = resolveGeminiModel(this.configService.get<string>('GEMINI_MODEL'));
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
