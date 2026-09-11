@@ -22,7 +22,3 @@ Support ticket platform with multi-tenancy, LLM classification, and Redis cachin
 - **Tenant Isolation**: Every database query MUST be filtered by `organization_id`. Never query tickets across organizations.
 - **LLM Resiliency**: LLM calls must be non-blocking with timeout and fallback; ticket creation must never fail if LLM fails.
 - **Cache Normalization**: Redis cache keys use SHA-256 hash of lowercased, trimmed `(subject + message)`.
-- **Commit Attribution**:
-```
-Co-Authored-By: GoodevaDesk AI Assistant <noreply@goodevadesk.internal>
-```
