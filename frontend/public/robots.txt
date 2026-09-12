@@ -1,0 +1,38 @@
+# ==============================================================================
+# GoodevaDesk - Robots.txt
+# Optimized for Web Search Engines & AI Answer Engines (AEO/GEO)
+# ==============================================================================
+
+User-agent: *
+Allow: /
+
+# Explicitly allow major AI search crawlers & LLM agents
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Sitemap for Google Search Console & Bing Webmaster Tools
+Sitemap: https://goodevadesk.vercel.app/sitemap.xml
