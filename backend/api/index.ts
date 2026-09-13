@@ -23,7 +23,7 @@ async function createNestServer() {
 
     const allowedOrigins = process.env.CORS_ORIGINS
       ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
-      : ['http://localhost:5173', 'http://localhost:3000'];
+      : ['https://goodevadesk.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
 
     app.enableCors({
       origin: (origin, callback) => {
@@ -36,7 +36,7 @@ async function createNestServer() {
         ) {
           return callback(null, true);
         }
-        return callback(null, true);
+        return callback(new Error('Blocked by CORS policy: Origin not allowed.'));
       },
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
