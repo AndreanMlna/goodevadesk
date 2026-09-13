@@ -1,6 +1,6 @@
 import { PrismaClient, TicketStatus } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma: any = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting GoodevaDesk Database Seeding...');
