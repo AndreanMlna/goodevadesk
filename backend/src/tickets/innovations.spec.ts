@@ -178,6 +178,35 @@ describe('GoodevaDesk 5 Enterprise Innovations', () => {
       expect(fb.rating).toBe('thumbs_up');
       expect(mockPrisma.ticketFeedback.create).toHaveBeenCalled();
     });
+
+    it('should successfully record feedback when using notes alias (frontend compatibility)', async () => {
+      const orgId = 'org-rlhf-1';
+      const ticketId = 'tick-124';
+      mockPrisma.ticket.findFirst.mockResolvedValueOnce({
+        id: ticketId,
+        organization_id: orgId,
+      });
+      mockPrisma.ticketFeedback.create.mockImplementationOnce(async ({ data }: any) => ({
+        id: 'fb-2',
+        ...data,
+      }));
+
+      const fb = await ticketsService.submitFeedback(orgId, ticketId, {
+        rating: 'thumbs_down',
+        notes: 'Needs better grounding with return policy',
+      });
+
+      expect(fb.rating).toBe('thumbs_down');
+      expect(fb.agent_notes).toBe('Needs better grounding with return policy');
+      expect(mockPrisma.ticketFeedback.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            rating: 'thumbs_down',
+            agent_notes: 'Needs better grounding with return policy',
+          }),
+        }),
+      );
+    });
   });
 
   describe('Innovation 5: Executive Sentiment & Topic Analytics', () => {

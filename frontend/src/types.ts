@@ -50,7 +50,9 @@ export interface Ticket {
 export interface TicketFeedbackPayload {
   rating: 'thumbs_up' | 'thumbs_down';
   notes?: string;
+  agent_notes?: string;
   human_correction?: string;
+  edited_reply?: string;
 }
 
 export interface AnalyticsSummaryResponse {

@@ -469,13 +469,16 @@ export class TicketsService {
   async submitFeedback(organizationId: string, id: string, dto: SubmitFeedbackDto) {
     const ticket = await this.findOne(organizationId, id);
 
+    const feedbackNotes = dto.agent_notes || dto.notes;
+    const correctionReply = dto.edited_reply || dto.human_correction;
+
     const feedback = await this.prisma.ticketFeedback.create({
       data: {
         ticket_id: ticket.id,
         organization_id: organizationId,
         rating: dto.rating,
-        edited_reply: dto.edited_reply,
-        agent_notes: dto.agent_notes,
+        edited_reply: correctionReply,
+        agent_notes: feedbackNotes,
       },
     });
 
@@ -487,7 +490,7 @@ export class TicketsService {
             ticket_id: id,
             actor_name: 'Support Specialist',
             action: 'feedback_submitted',
-            details: `Submitted rating: ${dto.rating}${dto.agent_notes ? ` - ${dto.agent_notes}` : ''}`,
+            details: `Submitted rating: ${dto.rating}${feedbackNotes ? ` - ${feedbackNotes}` : ''}`,
           },
         });
       }

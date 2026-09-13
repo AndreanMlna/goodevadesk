@@ -206,6 +206,7 @@ export default function App() {
     await submitTicketFeedback(apiKey, selectedTicket.id, {
       rating,
       notes,
+      agent_notes: notes,
     });
   };
 

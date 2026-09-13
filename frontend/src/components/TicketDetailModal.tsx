@@ -106,6 +106,17 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   } | null>(null);
   const [streamError, setStreamError] = useState<string | null>(null);
   const cancelStreamRef = useRef<(() => void) | null>(null);
+  const feedbackTimeoutRef = useRef<any>(null);
+  const approvalTimeoutRef = useRef<any>(null);
+  const copiedTimeoutRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      if (approvalTimeoutRef.current) clearTimeout(approvalTimeoutRef.current);
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    };
+  }, []);
 
   // Sync state whenever ticket changes & load fresh messages & audit logs
   useEffect(() => {
@@ -223,7 +234,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   const handleCopyReply = (reply: string) => {
     navigator.clipboard.writeText(reply);
     setCopiedReply(true);
-    setTimeout(() => setCopiedReply(false), 2000);
+    if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    copiedTimeoutRef.current = setTimeout(() => setCopiedReply(false), 2000);
   };
 
   const handleApprove = async () => {
@@ -232,7 +244,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
       await onApproveReply();
       trackAiDraftApproved(ticket.id);
       setApprovalSuccess(true);
-      setTimeout(() => setApprovalSuccess(false), 3000);
+      if (approvalTimeoutRef.current) clearTimeout(approvalTimeoutRef.current);
+      approvalTimeoutRef.current = setTimeout(() => setApprovalSuccess(false), 3000);
       if (apiKey) {
         const fresh = await fetchTicketById(apiKey, ticket.id);
         if (fresh.messages) setMessages(fresh.messages);
@@ -300,7 +313,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
       setFeedbackSubmitted(rating);
       setShowFeedbackInput(false);
       setFeedbackNotes('');
-      setTimeout(() => setFeedbackSubmitted(null), 4000);
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = setTimeout(() => setFeedbackSubmitted(null), 4000);
       if (apiKey) {
         const freshLogs = await fetchAuditLogs(apiKey, ticket.id);
         setAuditLogs(freshLogs);

@@ -16,4 +16,14 @@ export class SubmitFeedbackDto {
   @IsOptional()
   @IsString()
   agent_notes?: string;
+
+  @ApiPropertyOptional({ example: 'SOP citation was accurate.', description: 'Agent feedback notes (alias for agent_notes)' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @ApiPropertyOptional({ example: 'Edited response for customer...', description: 'Optional human correction (alias for edited_reply)' })
+  @IsOptional()
+  @IsString()
+  human_correction?: string;
 }
