@@ -40,6 +40,29 @@ export const COPY_FEEDBACK_TIMEOUT_MS = 2000;
 export const FEEDBACK_MODAL_TIMEOUT_MS = 4000;
 export const MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
 
+export const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
+  critical: 1,
+  high: 4,
+  normal: 24,
+  low: 48,
+};
+
+export function computeResolutionTargetHours(
+  priority?: string | null,
+  createdAt?: string | null,
+  deadline?: string | null,
+): number {
+  if (createdAt && deadline) {
+    const diffMs = new Date(deadline).getTime() - new Date(createdAt).getTime();
+    const hours = diffMs / MILLISECONDS_PER_HOUR;
+    if (hours > 0 && hours <= 168) {
+      return hours;
+    }
+  }
+  const key = (priority || 'normal').toLowerCase().trim();
+  return SLA_HOURS_BY_PRIORITY[key] ?? SLA_HOURS_BY_PRIORITY.normal;
+}
+
 export interface SlaDeadlineStatus {
   text: string;
   isBreached: boolean;

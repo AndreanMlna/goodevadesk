@@ -13,6 +13,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { Ticket, TicketStatus } from '../types';
+import { computeResolutionTargetHours } from '../constants';
 import { KpiMetricsOverview } from './desk/KpiMetricsOverview';
 import { TicketCardItem } from './desk/TicketCardItem';
 import { OperationalGaugesSidebar } from './desk/OperationalGaugesSidebar';
@@ -93,6 +94,23 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
   const aiTriageRate =
     totalCount > 0 ? Math.round((triagedCount / totalCount) * 1000) / 10 : 0;
 
+  // Dynamic Average Resolution Target (Priority Escalation SLA)
+  // Evaluates active tickets requiring resolution, or falls back to all tickets in tenant
+  const activeTickets = ticketsToAggregate.filter((t) => t.status !== 'closed');
+  const targetTickets = activeTickets.length > 0 ? activeTickets : ticketsToAggregate;
+
+  const avgResolutionHours =
+    targetTickets.length > 0
+      ? Math.round(
+          (targetTickets.reduce(
+            (sum, t) => sum + computeResolutionTargetHours(t.priority, t.created_at, t.sla_deadline),
+            0,
+          ) /
+            targetTickets.length) *
+            10,
+        ) / 10
+      : 24.0;
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* 1. TOP 4 METRIC KPI CARDS */}
@@ -100,6 +118,7 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
         totalTickets={stats.total}
         slaComplianceRate={slaComplianceRate}
         aiTriageRate={aiTriageRate}
+        avgResolutionHours={avgResolutionHours}
       />
 
       {/* 2. ASYMMETRIC TWO-COLUMN LAYOUT (TICKET STREAM + GAUGES) */}
