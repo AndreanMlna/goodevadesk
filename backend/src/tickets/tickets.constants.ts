@@ -5,7 +5,9 @@ export const SLA_HOURS_BY_PRIORITY: Record<string, number> = {
   low: 48,
 };
 
+export const DEFAULT_TICKET_CATEGORY = 'general';
 export const DEFAULT_TICKET_PRIORITY = 'normal';
 export const DEFAULT_TICKET_SENTIMENT = 'neutral';
 export const DEFAULT_URGENCY_SCORE = 0.5;
 export const DEFAULT_PAGE_LIMIT = 20;
+export const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;

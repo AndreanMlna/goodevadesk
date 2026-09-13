@@ -1,4 +1,4 @@
-import { OrganizationTenant } from './types';
+import { OrganizationTenant, TicketStatus } from './types';
 
 export const DEFAULT_TENANTS: OrganizationTenant[] = [
   {
@@ -15,6 +15,31 @@ export const DEFAULT_TENANTS: OrganizationTenant[] = [
   },
 ];
 
+// Team & Agent Identity Constants
+export const TEAM_MEMBERS: string[] = [
+  'Unassigned',
+  'Sarah Connor (L2 Tech Lead)',
+  'Alex Mercer (Billing Specialist)',
+  'Elena Rostova (Incident Commander)',
+  'Marcus Vance (Security Ops)',
+  'Devin Hayes (Support Tier 1)',
+];
+
+export const UNASSIGNED_AGENT = 'Unassigned';
+export const DEFAULT_ACTIVE_AGENT_NAME = 'Support Agent (Active)';
+export const DEFAULT_INTERNAL_WHISPER_SENDER = 'Staff Specialist';
+export const DEFAULT_AGENT_SENDER = 'Support Agent';
+
+// Ticket Lifecycle Constants
+export const LIFECYCLE_STATUSES: TicketStatus[] = ['open', 'in_progress', 'closed'];
+
+// Polling, Notification, and Delay Durations (ms)
+export const PRESENCE_POLL_INTERVAL_MS = 10000;
+export const AUTO_DISMISS_NOTIFICATION_MS = 3000;
+export const COPY_FEEDBACK_TIMEOUT_MS = 2000;
+export const FEEDBACK_MODAL_TIMEOUT_MS = 4000;
+export const MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
+
 export interface SlaDeadlineStatus {
   text: string;
   isBreached: boolean;
@@ -26,7 +51,7 @@ export function formatDeadline(deadlineStr?: string | null): SlaDeadlineStatus |
   const deadline = new Date(deadlineStr);
   const now = new Date();
   const diffMs = deadline.getTime() - now.getTime();
-  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+  const diffHours = Math.round(diffMs / MILLISECONDS_PER_HOUR);
 
   if (diffMs < 0) {
     return { text: 'SLA Breached', isBreached: true };

@@ -1,13 +1,12 @@
 import React from 'react';
 import { Ticket, TicketStatus } from '../../types';
+import { LIFECYCLE_STATUSES } from '../../constants';
 
 interface TicketLifecycleBarProps {
   ticket: Ticket;
   onStatusUpdate: (id: string, newStatus: TicketStatus) => Promise<void>;
   onRefreshAuditLogs?: () => void;
 }
-
-const LIFECYCLE_STATUSES: TicketStatus[] = ['open', 'in_progress', 'closed'];
 
 export const TicketLifecycleBar: React.FC<TicketLifecycleBarProps> = ({
   ticket,

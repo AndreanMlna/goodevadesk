@@ -11,6 +11,7 @@ from constants import (
     INVOICE_ORDER_REGEX,
     ERROR_CODE_REGEX,
     MONEY_REGEX,
+    MIN_PHONE_DIGITS,
 )
 
 
@@ -29,7 +30,7 @@ def extract_entities(text: str, customer_email: Optional[str] = None) -> Extract
     phone_numbers = []
     for match in raw_phones:
         cleaned = "".join([part for part in match if part])
-        if len(cleaned) >= 8:
+        if len(cleaned) >= MIN_PHONE_DIGITS:
             phone_numbers.append(cleaned)
 
     invoice_ids = list(set(re.findall(INVOICE_ORDER_REGEX, text, re.IGNORECASE)))

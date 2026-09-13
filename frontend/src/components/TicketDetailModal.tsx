@@ -23,15 +23,17 @@ import { TicketCopilotStudio } from './ticket-modal/TicketCopilotStudio';
 import { TicketNlpCard } from './ticket-modal/TicketNlpCard';
 import { TicketAuditTrailTab } from './ticket-modal/TicketAuditTrailTab';
 import { TicketLifecycleBar } from './ticket-modal/TicketLifecycleBar';
-
-const TEAM_MEMBERS = [
-  'Unassigned',
-  'Sarah Connor (L2 Tech Lead)',
-  'Alex Mercer (Billing Specialist)',
-  'Elena Rostova (Incident Commander)',
-  'Marcus Vance (Security Ops)',
-  'Devin Hayes (Support Tier 1)',
-];
+import {
+  TEAM_MEMBERS,
+  UNASSIGNED_AGENT,
+  DEFAULT_ACTIVE_AGENT_NAME,
+  DEFAULT_INTERNAL_WHISPER_SENDER,
+  DEFAULT_AGENT_SENDER,
+  PRESENCE_POLL_INTERVAL_MS,
+  AUTO_DISMISS_NOTIFICATION_MS,
+  COPY_FEEDBACK_TIMEOUT_MS,
+  FEEDBACK_MODAL_TIMEOUT_MS,
+} from '../constants';
 
 interface TicketDetailModalProps {
   ticket: Ticket | null;
@@ -163,7 +165,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
     const sendHeartbeat = async () => {
       try {
-        const agentName = assignedTo && assignedTo !== 'Unassigned' ? assignedTo : 'Support Agent (Active)';
+        const agentName =
+          assignedTo && assignedTo !== UNASSIGNED_AGENT ? assignedTo : DEFAULT_ACTIVE_AGENT_NAME;
         const presenceRes = await recordTicketPresence(apiKey, ticket.id, agentName);
         if (isMounted) {
           if (presenceRes.collision_detected && presenceRes.active_agents) {
@@ -179,7 +182,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     };
 
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 10000);
+    const interval = setInterval(sendHeartbeat, PRESENCE_POLL_INTERVAL_MS);
 
     return () => {
       isMounted = false;
@@ -212,7 +215,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     navigator.clipboard.writeText(reply);
     setCopiedReply(true);
     if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-    copiedTimeoutRef.current = setTimeout(() => setCopiedReply(false), 2000);
+    copiedTimeoutRef.current = setTimeout(() => setCopiedReply(false), COPY_FEEDBACK_TIMEOUT_MS);
   };
 
   const handleApprove = async () => {
@@ -222,7 +225,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
       trackAiDraftApproved(ticket.id);
       setApprovalSuccess(true);
       if (approvalTimeoutRef.current) clearTimeout(approvalTimeoutRef.current);
-      approvalTimeoutRef.current = setTimeout(() => setApprovalSuccess(false), 3000);
+      approvalTimeoutRef.current = setTimeout(
+        () => setApprovalSuccess(false),
+        AUTO_DISMISS_NOTIFICATION_MS,
+      );
       if (apiKey) {
         const fresh = await fetchTicketById(apiKey, ticket.id);
         if (fresh.messages) setMessages(fresh.messages);
@@ -290,7 +296,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
       setShowFeedbackInput(false);
       setFeedbackNotes('');
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-      feedbackTimeoutRef.current = setTimeout(() => setFeedbackSubmitted(null), 4000);
+      feedbackTimeoutRef.current = setTimeout(() => setFeedbackSubmitted(null), FEEDBACK_MODAL_TIMEOUT_MS);
       refreshAuditLogs();
     } catch (err: any) {
       alert(`Feedback submission failed: ${err.message}`);
@@ -306,7 +312,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
       const newMsg = await addTicketMessage(apiKey, ticket.id, {
         content: composerContent.trim(),
         sender_type: composerType,
-        sender_name: composerType === 'internal_note' ? 'Staff Specialist' : 'Support Agent',
+        sender_name:
+          composerType === 'internal_note' ? DEFAULT_INTERNAL_WHISPER_SENDER : DEFAULT_AGENT_SENDER,
       });
 
       setMessages((prev) => [...prev, newMsg]);
@@ -338,7 +345,11 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
     setIsAssigning(true);
     try {
-      const updated = await assignTicket(apiKey, ticket.id, newAssignee === 'Unassigned' ? '' : newAssignee);
+      const updated = await assignTicket(
+        apiKey,
+        ticket.id,
+        newAssignee === UNASSIGNED_AGENT ? '' : newAssignee,
+      );
       if (onTicketUpdated) onTicketUpdated(updated);
       refreshAuditLogs();
     } catch (err: any) {

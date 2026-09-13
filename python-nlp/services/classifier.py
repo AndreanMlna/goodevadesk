@@ -7,6 +7,20 @@ from constants import (
     BILLING_KEYWORDS,
     TECHNICAL_KEYWORDS,
     URGENT_KEYWORDS,
+    CATEGORY_BILLING,
+    CATEGORY_TECHNICAL,
+    CATEGORY_GENERAL,
+    URGENCY_HIGH,
+    URGENCY_MEDIUM,
+    URGENCY_LOW,
+    SENTIMENT_NEGATIVE,
+    SENTIMENT_NEUTRAL,
+    MIN_CATEGORY_THRESHOLD,
+    MEDIUM_URGENCY_THRESHOLD,
+    DEFAULT_GENERAL_CONFIDENCE,
+    BASE_CONFIDENCE,
+    MAX_CONFIDENCE,
+    CONFIDENCE_STEP,
 )
 
 
@@ -18,15 +32,15 @@ def classify_category(lower_text: str) -> Tuple[str, float, float, float]:
     billing_score = sum(weight for kw, weight in BILLING_KEYWORDS.items() if kw in lower_text)
     technical_score = sum(weight for kw, weight in TECHNICAL_KEYWORDS.items() if kw in lower_text)
 
-    if billing_score > technical_score and billing_score > 0.5:
-        confidence = min(0.95, 0.65 + (billing_score * 0.08))
-        return "billing", confidence, billing_score, technical_score
+    if billing_score > technical_score and billing_score > MIN_CATEGORY_THRESHOLD:
+        confidence = min(MAX_CONFIDENCE, BASE_CONFIDENCE + (billing_score * CONFIDENCE_STEP))
+        return CATEGORY_BILLING, confidence, billing_score, technical_score
 
-    if technical_score > billing_score and technical_score > 0.5:
-        confidence = min(0.95, 0.65 + (technical_score * 0.08))
-        return "technical", confidence, billing_score, technical_score
+    if technical_score > billing_score and technical_score > MIN_CATEGORY_THRESHOLD:
+        confidence = min(MAX_CONFIDENCE, BASE_CONFIDENCE + (technical_score * CONFIDENCE_STEP))
+        return CATEGORY_TECHNICAL, confidence, billing_score, technical_score
 
-    return "general", 0.70, billing_score, technical_score
+    return CATEGORY_GENERAL, DEFAULT_GENERAL_CONFIDENCE, billing_score, technical_score
 
 
 def determine_urgency(
@@ -41,16 +55,16 @@ def determine_urgency(
     """
     is_urgent = any(kw in lower_text for kw in URGENT_KEYWORDS) or len(error_codes) > 0
     if is_urgent:
-        return "high"
+        return URGENCY_HIGH
 
-    if billing_score > 2.0 or technical_score > 2.0:
-        return "medium"
+    if billing_score > MEDIUM_URGENCY_THRESHOLD or technical_score > MEDIUM_URGENCY_THRESHOLD:
+        return URGENCY_MEDIUM
 
-    return "low"
+    return URGENCY_LOW
 
 
 def determine_sentiment(billing_score: float, technical_score: float) -> str:
     """
     Infers an initial sentiment hint from issue severity indicators.
     """
-    return "negative" if (billing_score > 0 or technical_score > 0) else "neutral"
+    return SENTIMENT_NEGATIVE if (billing_score > 0 or technical_score > 0) else SENTIMENT_NEUTRAL

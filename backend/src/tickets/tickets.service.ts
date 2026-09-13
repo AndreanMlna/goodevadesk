@@ -14,6 +14,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { Prisma, Ticket, TicketStatus } from '@prisma/client';
 import {
+  DEFAULT_TICKET_CATEGORY,
   DEFAULT_TICKET_PRIORITY,
   DEFAULT_TICKET_SENTIMENT,
   DEFAULT_URGENCY_SCORE,
@@ -158,7 +159,7 @@ export class TicketsService {
           if (this.semanticCacheService && suggestedReply) {
             this.semanticCacheService
               .store(organizationId, `${sanitizedSubject} ${sanitizedMessage}`, suggestedReply, {
-                category: category || 'general',
+                category: category || DEFAULT_TICKET_CATEGORY,
                 priority,
               })
               .catch((err) => this.logger.warn(`Failed to store semantic cache: ${err.message}`));
@@ -691,8 +692,8 @@ export class TicketsService {
     // Store in semantic cache for future instant hits
     if (this.semanticCacheService) {
       await this.semanticCacheService.store(orgId, queryToProcess, fullReply, {
-        category: ticket.category || 'general',
-        priority: ticket.priority || 'normal',
+        category: ticket.category || DEFAULT_TICKET_CATEGORY,
+        priority: ticket.priority || DEFAULT_TICKET_PRIORITY,
       });
     }
 

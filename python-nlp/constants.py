@@ -87,3 +87,26 @@ ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:8000',
 ]
+
+# ==============================================================================
+# 4. Classification Categories, Urgencies & Scoring Thresholds
+# ==============================================================================
+
+CATEGORY_BILLING = "billing"
+CATEGORY_TECHNICAL = "technical"
+CATEGORY_GENERAL = "general"
+
+URGENCY_HIGH = "high"
+URGENCY_MEDIUM = "medium"
+URGENCY_LOW = "low"
+
+SENTIMENT_NEGATIVE = "negative"
+SENTIMENT_NEUTRAL = "neutral"
+
+MIN_CATEGORY_THRESHOLD = 0.5
+MEDIUM_URGENCY_THRESHOLD = 2.0
+DEFAULT_GENERAL_CONFIDENCE = 0.70
+BASE_CONFIDENCE = 0.65
+MAX_CONFIDENCE = 0.95
+CONFIDENCE_STEP = 0.08
+MIN_PHONE_DIGITS = 8

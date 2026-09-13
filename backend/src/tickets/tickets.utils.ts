@@ -1,15 +1,21 @@
 import { Prisma, TicketStatus } from '@prisma/client';
-import { SLA_HOURS_BY_PRIORITY } from './tickets.constants';
+import {
+  SLA_HOURS_BY_PRIORITY,
+  DEFAULT_TICKET_PRIORITY,
+  MILLISECONDS_PER_HOUR,
+} from './tickets.constants';
 import { QueryTicketsDto } from './dto/query-tickets.dto';
-
-const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 
 /**
  * Pure function: Computes SLA deadline date based on ticket priority level.
  */
-export function calculateSlaDeadline(priority: string = 'normal', baseDate: Date = new Date()): Date {
-  const normalizedPriority = priority ? priority.toLowerCase().trim() : 'normal';
-  const slaHours = SLA_HOURS_BY_PRIORITY[normalizedPriority] ?? SLA_HOURS_BY_PRIORITY.normal;
+export function calculateSlaDeadline(
+  priority: string = DEFAULT_TICKET_PRIORITY,
+  baseDate: Date = new Date(),
+): Date {
+  const normalizedPriority = priority ? priority.toLowerCase().trim() : DEFAULT_TICKET_PRIORITY;
+  const slaHours =
+    SLA_HOURS_BY_PRIORITY[normalizedPriority] ?? SLA_HOURS_BY_PRIORITY[DEFAULT_TICKET_PRIORITY];
   return new Date(baseDate.getTime() + slaHours * MILLISECONDS_PER_HOUR);
 }
 
