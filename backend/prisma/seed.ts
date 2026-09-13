@@ -91,6 +91,85 @@ async function main() {
     console.log('✅ Seeded 1 sample ticket for TechFlow Inc');
   }
 
+  // 5. Seed Messages and Audit Logs for all tickets if missing
+  const allTickets = await prisma.ticket.findMany();
+  for (const ticket of allTickets) {
+    const msgCount = await prisma.ticketMessage.count({ where: { ticket_id: ticket.id } });
+    if (msgCount === 0) {
+      // Customer opening message
+      await prisma.ticketMessage.create({
+        data: {
+          ticket_id: ticket.id,
+          organization_id: ticket.organization_id,
+          sender_type: 'customer',
+          sender_name: ticket.customer_email.split('@')[0],
+          sender_email: ticket.customer_email,
+          content: ticket.message,
+          created_at: ticket.created_at,
+        },
+      });
+
+      // Internal Whisper Note
+      await prisma.ticketMessage.create({
+        data: {
+          ticket_id: ticket.id,
+          organization_id: ticket.organization_id,
+          sender_type: 'internal_note',
+          sender_name: 'Sarah Connor (Tier 2 Lead)',
+          content: 'Verified customer account. Running diagnostics on billing gateway logs.',
+          created_at: new Date(ticket.created_at.getTime() + 10 * 60 * 1000),
+        },
+      });
+
+      // If in_progress or closed, add Agent Reply
+      if (ticket.status !== TicketStatus.open && ticket.suggested_reply) {
+        await prisma.ticketMessage.create({
+          data: {
+            ticket_id: ticket.id,
+            organization_id: ticket.organization_id,
+            sender_type: 'agent',
+            sender_name: 'Alex Mercer (Support Agent)',
+            content: ticket.suggested_reply,
+            created_at: new Date(ticket.created_at.getTime() + 25 * 60 * 1000),
+          },
+        });
+      }
+    }
+
+    const auditCount = await prisma.auditLog.count({ where: { ticket_id: ticket.id } });
+    if (auditCount === 0) {
+      await prisma.auditLog.createMany({
+        data: [
+          {
+            ticket_id: ticket.id,
+            organization_id: ticket.organization_id,
+            actor_name: ticket.customer_email,
+            action: 'ticket_created',
+            details: `Ticket created with initial priority "${ticket.priority || 'normal'}"`,
+            created_at: ticket.created_at,
+          },
+          {
+            ticket_id: ticket.id,
+            organization_id: ticket.organization_id,
+            actor_name: 'Sarah Connor (Supervisor)',
+            action: 'assigned',
+            details: 'Assigned ticket to Alex Mercer (Support Agent)',
+            created_at: new Date(ticket.created_at.getTime() + 5 * 60 * 1000),
+          },
+        ],
+      });
+
+      // Also assign ticket if null
+      if (!ticket.assigned_to) {
+        await prisma.ticket.update({
+          where: { id: ticket.id },
+          data: { assigned_to: 'Alex Mercer (Support Agent)' },
+        });
+      }
+    }
+  }
+  console.log('✅ Threaded messages and audit logs seeded for all tickets');
+
   console.log('🎉 Database seeding completed successfully!');
 }
 

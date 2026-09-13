@@ -1,5 +1,26 @@
 export type TicketStatus = 'open' | 'in_progress' | 'closed';
 
+export interface TicketMessage {
+  id: string;
+  ticket_id: string;
+  organization_id: string;
+  sender_type: 'customer' | 'agent' | 'internal_note' | 'system';
+  sender_name: string;
+  sender_email?: string | null;
+  content: string;
+  created_at: string;
+}
+
+export interface AuditLogItem {
+  id: string;
+  organization_id: string;
+  ticket_id?: string | null;
+  actor_name: string;
+  action: string;
+  details?: string | null;
+  created_at: string;
+}
+
 export interface Ticket {
   id: string;
   organization_id: string;
@@ -12,10 +33,13 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
   priority?: 'critical' | 'high' | 'normal' | 'low' | null;
+  assigned_to?: string | null;
   sla_deadline?: string | null;
   sentiment?: 'frustrated' | 'negative' | 'neutral' | 'positive' | null;
   urgency_score?: number | null;
   grounding_doc?: string | null;
+  messages?: TicketMessage[];
+  audit_logs?: AuditLogItem[];
   _meta?: {
     cache_hit: boolean;
     llm_processed: boolean;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Clock, ChevronRight } from 'lucide-react';
+import { Flame, Clock, ChevronRight, User } from 'lucide-react';
 import { Ticket } from '../../types';
 import {
   formatDeadline,
@@ -86,10 +86,18 @@ export const TicketCardItem: React.FC<TicketCardItemProps> = ({ ticket, onClick 
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-800/70 text-[11px] text-slate-500">
-        <span className="font-mono text-slate-400 truncate max-w-[200px]">
-          {ticket.customer_email}
-        </span>
-        <span>{new Date(ticket.created_at).toLocaleString()}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono text-slate-400 truncate max-w-[180px]">
+            {ticket.customer_email}
+          </span>
+          {ticket.assigned_to && (
+            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-indigo-300 bg-indigo-950/40 border border-indigo-800/40 px-2 py-0.5 rounded-full font-medium truncate max-w-[150px]">
+              <User className="w-2.5 h-2.5 text-indigo-400 shrink-0" />
+              <span className="truncate">{ticket.assigned_to.split(' ')[0]}</span>
+            </span>
+          )}
+        </div>
+        <span>{new Date(ticket.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Zap,
   ChevronDown,
+  Search,
 } from 'lucide-react';
 import { OrganizationTenant, Ticket } from '../types';
 import { formatDeadline } from '../constants';
@@ -32,6 +33,7 @@ interface HeaderBarProps {
   theme?: 'dark' | 'light';
   onToggleTheme?: () => void;
   onOpenSettings?: () => void;
+  onOpenCommandPalette?: () => void;
 }
 
 export const HeaderBar: React.FC<HeaderBarProps> = ({
@@ -48,6 +50,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   theme = 'dark',
   onToggleTheme,
   onOpenSettings,
+  onOpenCommandPalette,
 }) => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -133,8 +136,23 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Right Controls: Theme Toggle, Notifications, New Ticket (+) */}
+        {/* Mobile Right Controls: Search, Theme Toggle, Notifications, New Ticket (+) */}
         <div className="flex items-center gap-1.5 shrink-0">
+          {onOpenCommandPalette && (
+            <button
+              type="button"
+              onClick={onOpenCommandPalette}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center border transition ${
+                theme === 'light'
+                  ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm'
+                  : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white'
+              }`}
+              aria-label="Command Palette"
+              title="Command Palette (Ctrl+K)"
+            >
+              <Search className="w-4 h-4 text-indigo-400" />
+            </button>
+          )}
           {onToggleTheme && (
             <button
               type="button"
@@ -221,6 +239,25 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
         {/* Right Header Controls */}
         <div className="flex items-center gap-3">
+          {/* Global Command Palette Trigger Button */}
+          {onOpenCommandPalette && (
+            <button
+              type="button"
+              onClick={onOpenCommandPalette}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${
+                theme === 'light'
+                  ? 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-sm'
+                  : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
+              }`}
+              title="Search tickets, switch tenants, or execute actions (Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Search or Command...</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-800/80 border border-slate-700 rounded text-slate-400">
+                ⌘K
+              </kbd>
+            </button>
+          )}
           {/* Tenant Status Badge */}
           <div
             className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs shadow-sm ${

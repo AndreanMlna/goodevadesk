@@ -24,6 +24,14 @@ describe('TicketsService', () => {
         findFirst: jest.fn(),
         update: jest.fn(),
       },
+      ticketMessage: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+      },
+      auditLog: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+      },
     };
 
     redis = {
@@ -172,9 +180,11 @@ describe('TicketsService', () => {
       await expect(service.findOne('another-org-id', 'ticket-1')).rejects.toThrow(
         NotFoundException,
       );
-      expect(prisma.ticket.findFirst).toHaveBeenCalledWith({
-        where: { id: 'ticket-1', organization_id: 'another-org-id' },
-      });
+      expect(prisma.ticket.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'ticket-1', organization_id: 'another-org-id' },
+        }),
+      );
     });
 
     it('findAll should strictly scope query by organization_id', async () => {
@@ -191,6 +201,92 @@ describe('TicketsService', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('Enterprise Phase 1 features', () => {
+    it('createMessage should append threaded message and record audit log', async () => {
+      const mockTicket = {
+        id: 'ticket-1',
+        organization_id: mockOrgId,
+        customer_email: 'client@example.com',
+        messages: [],
+      };
+      prisma.ticket.findFirst.mockResolvedValue(mockTicket);
+      prisma.ticketMessage.create.mockResolvedValue({
+        id: 'msg-1',
+        ticket_id: 'ticket-1',
+        organization_id: mockOrgId,
+        sender_type: 'internal_note',
+        sender_name: 'Lead Agent',
+        content: 'Investigating billing transaction',
+        created_at: new Date(),
+      });
+
+      const message = await service.createMessage(mockOrgId, 'ticket-1', {
+        content: 'Investigating billing transaction',
+        sender_type: 'internal_note',
+        sender_name: 'Lead Agent',
+      });
+
+      expect(prisma.ticketMessage.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            ticket_id: 'ticket-1',
+            organization_id: mockOrgId,
+            sender_type: 'internal_note',
+          }),
+        }),
+      );
+      expect(prisma.auditLog.create).toHaveBeenCalled();
+      expect(message.sender_name).toBe('Lead Agent');
+    });
+
+    it('assignTicket should update assignee and record audit event', async () => {
+      const mockTicket = {
+        id: 'ticket-1',
+        organization_id: mockOrgId,
+        customer_email: 'client@example.com',
+      };
+      prisma.ticket.findFirst.mockResolvedValue(mockTicket);
+      prisma.ticket.update.mockResolvedValue({
+        ...mockTicket,
+        assigned_to: 'Sarah Jenkins',
+      });
+
+      const updated = await service.assignTicket(mockOrgId, 'ticket-1', {
+        assigned_to: 'Sarah Jenkins',
+      });
+
+      expect(prisma.ticket.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'ticket-1' },
+          data: { assigned_to: 'Sarah Jenkins' },
+        }),
+      );
+      expect(prisma.auditLog.create).toHaveBeenCalled();
+      expect(updated.assigned_to).toBe('Sarah Jenkins');
+    });
+
+    it('getAuditLogs should retrieve tenant-scoped audit records', async () => {
+      prisma.auditLog.findMany.mockResolvedValue([
+        {
+          id: 'log-1',
+          organization_id: mockOrgId,
+          ticket_id: 'ticket-1',
+          action: 'ticket_created',
+          actor_name: 'system',
+          created_at: new Date(),
+        },
+      ]);
+
+      const logs = await service.getAuditLogs(mockOrgId, 'ticket-1');
+      expect(prisma.auditLog.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { organization_id: mockOrgId, ticket_id: 'ticket-1' },
+        }),
+      );
+      expect(logs.length).toBe(1);
     });
   });
 });

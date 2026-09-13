@@ -25,6 +25,7 @@ import { TicketDetailModal } from './components/TicketDetailModal';
 import { CreateTicketModal } from './components/CreateTicketModal';
 import { KnowledgeShelfView } from './components/KnowledgeShelfView';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { CommandPalette } from './components/CommandPalette';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'desk' | 'analytics' | 'shelf'>('desk');
@@ -53,6 +54,7 @@ export default function App() {
   const [loadingNlp, setLoadingNlp] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof window !== 'undefined') {
@@ -77,6 +79,18 @@ export default function App() {
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
+
+  // Global keyboard shortcut: Ctrl+K / Cmd+K to open Command Palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
@@ -274,6 +288,7 @@ export default function App() {
           isLoading={loading || loadingAnalytics}
           onOpenCreateModal={() => setIsCreateModalOpen(true)}
           onOpenSettings={() => setIsSettingsModalOpen(true)}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
@@ -332,12 +347,35 @@ export default function App() {
       {/* 4. MODAL DIALOGS */}
       <TicketDetailModal
         ticket={selectedTicket}
+        apiKey={apiKey}
         onClose={() => setSelectedTicket(null)}
         onStatusUpdate={handleStatusUpdate}
         onApproveReply={handleApproveReply}
         onFeedback={handleFeedback}
+        onTicketUpdated={(updated) => {
+          setSelectedTicket(updated);
+          setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        }}
         nlpAnalysis={nlpAnalysis}
         loadingNlp={loadingNlp}
+      />
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        tickets={tickets}
+        onSelectTicket={(t) => {
+          setSelectedTicket(t);
+          setActiveTab('desk');
+        }}
+        onOpenCreateTicket={() => setIsCreateModalOpen(true)}
+        onNavigateTab={setActiveTab}
+        onSetStatusFilter={setStatusFilter}
+        onSetPriorityFilter={setPriorityFilter}
+        onTenantChange={handleTenantChange}
+        selectedTenant={selectedTenant}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       <CreateTicketModal

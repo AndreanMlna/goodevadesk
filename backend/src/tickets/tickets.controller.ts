@@ -23,6 +23,8 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { QueryTicketsDto } from './dto/query-tickets.dto';
 import { SubmitFeedbackDto } from './dto/feedback.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 import { CurrentOrg } from '../auth/current-org.decorator';
 import { Organization } from '@prisma/client';
@@ -134,5 +136,51 @@ export class TicketsController {
     @Body() feedbackDto: SubmitFeedbackDto,
   ) {
     return this.ticketsService.submitFeedback(org.id, id, feedbackDto);
+  }
+
+  @Post(':id/messages')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Enterprise: Post multi-turn reply or internal whisper note',
+    description:
+      'Appends a message to the multi-turn thread or records an internal staff-only private whisper note.',
+  })
+  @ApiParam({ name: 'id', description: 'Ticket UUID identifier' })
+  @ApiResponse({ status: 201, description: 'Message or note successfully appended.' })
+  async createMessage(
+    @CurrentOrg() org: Organization,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: CreateMessageDto,
+  ) {
+    return this.ticketsService.createMessage(org.id, id, dto);
+  }
+
+  @Patch(':id/assign')
+  @ApiOperation({
+    summary: 'Enterprise: Assign ticket to agent or team tier',
+    description: 'Assigns or routes ticket to a designated support specialist or team tier.',
+  })
+  @ApiParam({ name: 'id', description: 'Ticket UUID identifier' })
+  @ApiResponse({ status: 200, description: 'Ticket assignment successfully updated.' })
+  async assignTicket(
+    @CurrentOrg() org: Organization,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: AssignTicketDto,
+  ) {
+    return this.ticketsService.assignTicket(org.id, id, dto);
+  }
+
+  @Get(':id/audit-logs')
+  @ApiOperation({
+    summary: 'Enterprise: Get immutable audit trail for ticket',
+    description: 'Retrieves all SOC-2 / ISO compliance event logs associated with this ticket.',
+  })
+  @ApiParam({ name: 'id', description: 'Ticket UUID identifier' })
+  @ApiResponse({ status: 200, description: 'Audit logs for ticket.' })
+  async getAuditLogs(
+    @CurrentOrg() org: Organization,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ) {
+    return this.ticketsService.getAuditLogs(org.id, id);
   }
 }

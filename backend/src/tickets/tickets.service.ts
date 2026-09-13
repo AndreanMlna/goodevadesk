@@ -6,6 +6,8 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { QueryTicketsDto } from './dto/query-tickets.dto';
 import { SubmitFeedbackDto } from './dto/feedback.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { Prisma, Ticket, TicketStatus } from '@prisma/client';
 import {
   SLA_HOURS_BY_PRIORITY,
@@ -141,6 +143,35 @@ export class TicketsService {
       `Created ticket [${ticket.id}] for tenant [${organizationId}] (Category: ${category || 'unclassified'}, Priority: ${priority})`,
     );
 
+    // Enterprise: Initialize customer message thread and record SOC-2 audit log
+    try {
+      if ((this.prisma as any).ticketMessage) {
+        await (this.prisma as any).ticketMessage.create({
+          data: {
+            ticket_id: ticket.id,
+            organization_id: organizationId,
+            sender_type: 'customer',
+            sender_name: customer_email.split('@')[0],
+            sender_email: customer_email.toLowerCase().trim(),
+            content: message.trim(),
+          },
+        });
+      }
+      if ((this.prisma as any).auditLog) {
+        await (this.prisma as any).auditLog.create({
+          data: {
+            organization_id: organizationId,
+            ticket_id: ticket.id,
+            actor_name: customer_email,
+            action: 'ticket_created',
+            details: `Created ticket via API/Portal with priority [${priority}]`,
+          },
+        });
+      }
+    } catch (auditErr: any) {
+      this.logger.warn(`Non-fatal: initial thread/audit creation: ${auditErr?.message}`);
+    }
+
     return {
       ...ticket,
       _meta: {
@@ -225,19 +256,47 @@ export class TicketsService {
   }
 
   /**
-   * Finds a single ticket strictly isolated by tenant organization ID.
+   * Finds a single ticket strictly isolated by tenant organization ID, including multi-turn messages and audit trail.
    */
-  async findOne(organizationId: string, id: string): Promise<Ticket> {
+  async findOne(organizationId: string, id: string): Promise<any> {
     const ticket = await this.prisma.ticket.findFirst({
       where: {
         id,
         organization_id: organizationId,
+      },
+      include: {
+        feedbacks: {
+          orderBy: { created_at: 'desc' },
+        },
+        messages: {
+          orderBy: { created_at: 'asc' },
+        },
+        audit_logs: {
+          orderBy: { created_at: 'desc' },
+          take: 50,
+        },
       },
     });
 
     if (!ticket) {
       this.logger.warn(`Ticket not found or cross-tenant access attempted: ticket [${id}], tenant [${organizationId}]`);
       throw new NotFoundException(`Ticket with ID "${id}" was not found`);
+    }
+
+    // Backward compatibility: If no messages exist yet in ticket_messages, synthesize initial customer message
+    if ((ticket as any).messages && (ticket as any).messages.length === 0 && ticket.message) {
+      (ticket as any).messages = [
+        {
+          id: `msg-${ticket.id.slice(0, 8)}`,
+          ticket_id: ticket.id,
+          organization_id: ticket.organization_id,
+          sender_type: 'customer',
+          sender_name: ticket.customer_email.split('@')[0],
+          sender_email: ticket.customer_email,
+          content: ticket.message,
+          created_at: ticket.created_at,
+        },
+      ];
     }
 
     return ticket;
@@ -258,6 +317,22 @@ export class TicketsService {
       data: { status: dto.status },
     });
 
+    try {
+      if ((this.prisma as any).auditLog) {
+        await (this.prisma as any).auditLog.create({
+          data: {
+            organization_id: organizationId,
+            ticket_id: id,
+            actor_name: 'Support Agent',
+            action: 'status_changed',
+            details: `Status changed to [${dto.status}]`,
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Non-fatal: could not log status audit: ${err?.message}`);
+    }
+
     this.logger.log(`Updated ticket [${id}] status to [${dto.status}] for tenant [${organizationId}]`);
     return updated;
   }
@@ -276,6 +351,34 @@ export class TicketsService {
       where: { id },
       data: { status: TicketStatus.in_progress },
     });
+
+    try {
+      if ((this.prisma as any).ticketMessage) {
+        await (this.prisma as any).ticketMessage.create({
+          data: {
+            ticket_id: ticket.id,
+            organization_id: organizationId,
+            sender_type: 'agent',
+            sender_name: 'AI Support Assistant (Approved)',
+            sender_email: 'ai-assistant@goodevadesk.internal',
+            content: ticket.suggested_reply,
+          },
+        });
+      }
+      if ((this.prisma as any).auditLog) {
+        await (this.prisma as any).auditLog.create({
+          data: {
+            organization_id: organizationId,
+            ticket_id: id,
+            actor_name: 'Support Agent',
+            action: 'reply_sent',
+            details: 'Approved and dispatched AI suggested reply to customer',
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Non-fatal: could not record approve reply artifacts: ${err?.message}`);
+    }
 
     this.logger.log(`Agent approved AI suggested reply for ticket [${id}]`);
     return updated;
@@ -297,7 +400,137 @@ export class TicketsService {
       },
     });
 
+    try {
+      if ((this.prisma as any).auditLog) {
+        await (this.prisma as any).auditLog.create({
+          data: {
+            organization_id: organizationId,
+            ticket_id: id,
+            actor_name: 'Support Specialist',
+            action: 'feedback_submitted',
+            details: `Submitted rating: ${dto.rating}${dto.agent_notes ? ` - ${dto.agent_notes}` : ''}`,
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Non-fatal: could not log feedback audit: ${err?.message}`);
+    }
+
     this.logger.log(`Agent feedback submitted for ticket [${id}]: Rating [${dto.rating}]`);
     return feedback;
+  }
+
+  /**
+   * Enterprise: Adds a threaded conversation message or internal whisper note to a ticket.
+   */
+  async createMessage(
+    organizationId: string,
+    ticketId: string,
+    dto: CreateMessageDto,
+  ) {
+    const ticket = await this.findOne(organizationId, ticketId);
+
+    const senderName =
+      dto.sender_name?.trim() ||
+      (dto.sender_type === 'internal_note'
+        ? 'Internal Staff'
+        : dto.sender_type === 'agent'
+        ? 'Support Agent'
+        : ticket.customer_email.split('@')[0]);
+
+    const message = await (this.prisma as any).ticketMessage.create({
+      data: {
+        ticket_id: ticket.id,
+        organization_id: organizationId,
+        sender_type: dto.sender_type,
+        sender_name: senderName,
+        sender_email: dto.sender_email || (dto.sender_type === 'customer' ? ticket.customer_email : null),
+        content: dto.content.trim(),
+      },
+    });
+
+    try {
+      if ((this.prisma as any).auditLog) {
+        const action =
+          dto.sender_type === 'internal_note'
+            ? 'internal_note_added'
+            : dto.sender_type === 'agent'
+            ? 'reply_sent'
+            : 'customer_replied';
+
+        const details =
+          dto.sender_type === 'internal_note'
+            ? `Staff added private note (${dto.content.slice(0, 60)}...)`
+            : `Reply dispatched by ${senderName}`;
+
+        await (this.prisma as any).auditLog.create({
+          data: {
+            organization_id: organizationId,
+            ticket_id: ticket.id,
+            actor_name: senderName,
+            action,
+            details,
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Non-fatal: could not log message audit: ${err?.message}`);
+    }
+
+    return message;
+  }
+
+  /**
+   * Enterprise: Assigns ticket to an agent or team member.
+   */
+  async assignTicket(
+    organizationId: string,
+    ticketId: string,
+    dto: AssignTicketDto,
+  ) {
+    await this.findOne(organizationId, ticketId);
+
+    const updated = await this.prisma.ticket.update({
+      where: { id: ticketId },
+      data: { assigned_to: dto.assigned_to.trim() },
+    });
+
+    try {
+      if ((this.prisma as any).auditLog) {
+        await (this.prisma as any).auditLog.create({
+          data: {
+            organization_id: organizationId,
+            ticket_id: ticketId,
+            actor_name: 'Lead Agent',
+            action: 'assigned',
+            details: `Assigned ticket to ${dto.assigned_to.trim()}`,
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Non-fatal: could not log assign audit: ${err?.message}`);
+    }
+
+    return updated;
+  }
+
+  /**
+   * Enterprise: Retrieves immutable audit log trail for SOC-2 / ISO compliance.
+   */
+  async getAuditLogs(organizationId: string, ticketId?: string) {
+    const where: Prisma.AuditLogWhereInput = {
+      organization_id: organizationId,
+    };
+    if (ticketId) {
+      where.ticket_id = ticketId;
+    }
+
+    if (!(this.prisma as any).auditLog) return [];
+
+    return (this.prisma as any).auditLog.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
   }
 }

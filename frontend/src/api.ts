@@ -4,6 +4,8 @@ import {
   NlpAnalysisResult,
   AnalyticsSummaryResponse,
   TicketFeedbackPayload,
+  TicketMessage,
+  AuditLogItem,
 } from './types';
 
 // Real Backend REST API and NLP Microservice Base URLs
@@ -256,4 +258,66 @@ export async function submitTicketFeedback(
   });
 
   return handleResponse<any>(res, `Failed to submit feedback for ticket ${ticketId}`);
+}
+
+/**
+ * Enterprise: Appends a multi-turn conversation message or internal staff whisper note.
+ */
+export async function addTicketMessage(
+  apiKey: string,
+  ticketId: string,
+  payload: {
+    content: string;
+    sender_type: 'customer' | 'agent' | 'internal_note';
+    sender_name?: string;
+    sender_email?: string;
+  },
+): Promise<TicketMessage> {
+  const res = await fetch(`${API_BASE_URL}/tickets/${ticketId}/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse<TicketMessage>(res, `Failed to post message for ticket ${ticketId}`);
+}
+
+/**
+ * Enterprise: Assigns or routes a ticket to a support specialist or team tier.
+ */
+export async function assignTicket(
+  apiKey: string,
+  ticketId: string,
+  assigned_to: string,
+): Promise<Ticket> {
+  const res = await fetch(`${API_BASE_URL}/tickets/${ticketId}/assign`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify({ assigned_to }),
+  });
+
+  return handleResponse<Ticket>(res, `Failed to assign ticket ${ticketId}`);
+}
+
+/**
+ * Enterprise: Fetches immutable SOC-2 audit logs for a ticket.
+ */
+export async function fetchAuditLogs(
+  apiKey: string,
+  ticketId: string,
+): Promise<AuditLogItem[]> {
+  const res = await fetch(`${API_BASE_URL}/tickets/${ticketId}/audit-logs`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  return handleResponse<AuditLogItem[]>(res, `Failed to fetch audit logs for ticket ${ticketId}`);
 }
