@@ -297,7 +297,7 @@ Jika diberikan alokasi waktu pengembangan tambahan, berikut adalah arsitektur da
 
 ---
 
-## 5. 🐍 Python NLP Microservice (Bonus Bagian D)
+## 5. 🐍 Python NLP Microservice
  
 Tersedia microservice berbasis **FastAPI** di direktori `python-nlp/` yang melengkapi pipeline analisis:
 - **Named Entity Recognition (NER) & Regex Extraction**:
