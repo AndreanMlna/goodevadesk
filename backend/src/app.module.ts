@@ -10,6 +10,9 @@ import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { EscalationModule } from './escalation/escalation.module';
+import { GuardrailsModule } from './guardrails/guardrails.module';
+import { VectorModule } from './vector/vector.module';
+import { SemanticCacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { EscalationModule } from './escalation/escalation.module';
     PrismaModule,
     RedisModule,
     KnowledgeBaseModule,
+    VectorModule,
+    GuardrailsModule,
+    SemanticCacheModule,
     LlmModule,
     AuthModule,
     TicketsModule,

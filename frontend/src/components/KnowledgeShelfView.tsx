@@ -16,9 +16,11 @@ import {
   Database,
   ChevronDown,
   ChevronUp,
+  Search,
+  Zap,
 } from 'lucide-react';
 import { CompleteShelfLandingPage } from './CompleteShelfLandingPage';
-import { fetchSopDocuments, ingestSopDocument } from '../api';
+import { fetchSopDocuments, ingestSopDocument, fetchVectorSearchResults } from '../api';
 import { trackTelemetryEvent } from '../lib/telemetry';
 
 interface KnowledgeShelfViewProps {
@@ -32,6 +34,12 @@ export const KnowledgeShelfView: React.FC<KnowledgeShelfViewProps> = ({ apiKey }
   const [sopDocs, setSopDocs] = useState<any[]>([]);
   const [loadingSops, setLoadingSops] = useState(false);
   const [showRegistry, setShowRegistry] = useState(false);
+
+  // Enterprise Fase 3: Vector RAG Hybrid Search Playground State
+  const [vectorQuery, setVectorQuery] = useState('');
+  const [vectorResults, setVectorResults] = useState<any[]>([]);
+  const [isSearchingVector, setIsSearchingVector] = useState(false);
+  const [hasSearchedVector, setHasSearchedVector] = useState(false);
 
   // Ingestion Modal State
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
@@ -110,6 +118,22 @@ export const KnowledgeShelfView: React.FC<KnowledgeShelfViewProps> = ({ apiKey }
       });
     } finally {
       setIsIngesting(false);
+    }
+  };
+
+  // Enterprise Fase 3: Vector RAG Hybrid Search Handler
+  const handleVectorSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!vectorQuery.trim() || !apiKey) return;
+    setIsSearchingVector(true);
+    setHasSearchedVector(true);
+    try {
+      const results = await fetchVectorSearchResults(apiKey, vectorQuery.trim(), 3);
+      setVectorResults(results || []);
+    } catch (err) {
+      console.warn('[Knowledge Shelf] Vector search failed:', err);
+    } finally {
+      setIsSearchingVector(false);
     }
   };
 
@@ -207,6 +231,145 @@ export const KnowledgeShelfView: React.FC<KnowledgeShelfViewProps> = ({ apiKey }
             />
           </div>
         </div>
+      </div>
+
+      {/* Enterprise Fase 3: Vector RAG Hybrid Search Playground */}
+      <div className="bg-[#111827]/80 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-6 shadow-2xl space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-white text-base">Vector RAG Hybrid Search Engine (pgvector)</h3>
+                <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[10px] text-cyan-300 font-mono border border-cyan-500/40">
+                  /ai-engineer
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-[10px] text-purple-300 font-mono border border-purple-500/40 hidden sm:inline">
+                  Dense Vector + Sparse Keyword
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Query enterprise SOP policy documents using cosine similarity ranking over 256-dimensional embeddings.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Input Bar */}
+        <form onSubmit={handleVectorSearch} className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={vectorQuery}
+                onChange={(e) => setVectorQuery(e.target.value)}
+                placeholder="Enter customer inquiry or support issue (e.g., 'How to handle chargeback and refund requests?')..."
+                className="w-full bg-[#090d16] border border-cyan-500/30 focus:border-cyan-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none transition shadow-inner"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSearchingVector || !vectorQuery.trim()}
+              className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 disabled:opacity-40 shadow-lg shadow-cyan-900/20"
+            >
+              {isSearchingVector ? (
+                <RotateCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Zap className="w-3.5 h-3.5" />
+              )}
+              <span>{isSearchingVector ? 'Searching Vectors...' : 'Vector Search'}</span>
+            </button>
+          </div>
+
+          {/* Quick Query Suggestions */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-400 text-[11px]">Quick Tests:</span>
+            {[
+              'Payment failed chargeback refund request',
+              'API gateway 504 gateway timeout SLA breach',
+              'Enterprise multi-tenant data isolation policy',
+              'Urgent double billing invoice dispute',
+            ].map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => {
+                  setVectorQuery(q);
+                }}
+                className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 text-[11px] border border-slate-700/50 transition"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </form>
+
+        {/* Vector Search Results Display */}
+        {hasSearchedVector && (
+          <div className="pt-3 border-t border-cyan-500/20 space-y-3 animate-fadeIn">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="font-semibold text-slate-300">
+                Hybrid RAG Retrieval Results ({vectorResults.length} matches):
+              </span>
+              <span className="text-[11px] font-mono text-cyan-400">
+                Metric: Cosine Similarity [0.0 - 1.0]
+              </span>
+            </div>
+
+            {vectorResults.length === 0 ? (
+              <div className="p-4 rounded-xl bg-[#090d16]/60 border border-slate-800 text-xs text-slate-400 text-center">
+                No matching SOP policies found for this query.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {vectorResults.map((res: any, idx: number) => {
+                  const score = typeof res.score === 'number' ? res.score : 0.85;
+                  const isHighMatch = score >= 0.8;
+
+                  return (
+                    <div
+                      key={res.docId || idx}
+                      className="p-4 rounded-xl bg-[#090d16] border border-cyan-500/30 hover:border-cyan-400/60 transition space-y-2 relative overflow-hidden flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-1 text-[11px]">
+                          <span className="font-mono font-bold text-cyan-300">
+                            {res.docId || `DOC-${idx + 1}`}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full font-mono font-bold text-[10px] border ${
+                              isHighMatch
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                : 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                            }`}
+                          >
+                            Sim: {score.toFixed(3)}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-xs text-white leading-tight">
+                          {res.title || 'Authoritative Operating Procedure'}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
+                          {res.snippet || res.content || 'Standard operational guidelines.'}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 capitalize">
+                          {res.category || 'policy'}
+                        </span>
+                        <span className="text-cyan-400/80 font-mono">Rank #{idx + 1}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 3D Canvas Showcase */}

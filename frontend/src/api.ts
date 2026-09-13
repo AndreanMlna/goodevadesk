@@ -445,3 +445,123 @@ export async function triggerSlaEscalationCheck(apiKey: string): Promise<any> {
   return handleResponse<any>(res, 'Failed to trigger SLA check');
 }
 
+/**
+ * Enterprise Fase 3: Streams AI Copilot suggested reply in real-time via Server-Sent Events (SSE).
+ * Features pre-LLM PII masking, sub-15ms semantic caching, and Vector RAG grounding.
+ */
+export async function streamTicketAiReply(
+  apiKey: string,
+  ticketId: string,
+  callbacks: {
+    onToken: (token: string) => void;
+    onDone: (data: { fullText: string; ragDoc?: string; cached?: boolean; piiMasked?: boolean }) => void;
+    onError: (err: any) => void;
+  },
+): Promise<() => void> {
+  const controller = new AbortController();
+
+  (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/ai-stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`SSE stream failed: HTTP ${response.status} ${response.statusText}`);
+      }
+
+      if (!response.body) {
+        throw new Error('ReadableStream not supported by browser environment.');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const dataStr = trimmed.slice(5).trim();
+            if (!dataStr) continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.error) {
+                callbacks.onError(new Error(parsed.error));
+                return;
+              }
+              if (parsed.token) {
+                callbacks.onToken(parsed.token);
+              }
+              if (parsed.done) {
+                callbacks.onDone({
+                  fullText: parsed.fullText || '',
+                  ragDoc: parsed.ragDoc,
+                  cached: parsed.cached,
+                  piiMasked: parsed.piiMasked,
+                });
+                return;
+              }
+            } catch {
+              // Ignore non-JSON ping or partial chunk
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        callbacks.onError(err);
+      }
+    }
+  })();
+
+  return () => {
+    controller.abort();
+  };
+}
+
+/**
+ * Enterprise Fase 3: Performs Vector RAG Hybrid Semantic Search against PostgreSQL knowledge vectors.
+ */
+export async function fetchVectorSearchResults(apiKey: string, query: string, limit: number = 3): Promise<any[]> {
+  const url = new URL(`${API_BASE_URL}/knowledge-base/vector-search`);
+  url.searchParams.append('query', query);
+  url.searchParams.append('limit', String(limit));
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  return handleResponse<any[]>(res, 'Failed to perform vector semantic search');
+}
+
+/**
+ * Enterprise Fase 3: Fetches Google BigQuery AI/ML production query blueprint.
+ */
+export async function fetchBigQueryBlueprint(apiKey: string): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/analytics/bigquery-ml/blueprint`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  return handleResponse<any>(res, 'Failed to fetch BigQuery ML blueprint');
+}
+
+

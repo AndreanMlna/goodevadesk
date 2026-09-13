@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
+import { BigQueryMlService } from './bigquery-ml.service';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 import { CurrentOrg } from '../auth/current-org.decorator';
 import { Organization } from '@prisma/client';
@@ -14,7 +15,10 @@ import { Organization } from '@prisma/client';
 @UseGuards(ApiKeyGuard)
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(
+    private readonly analyticsService: AnalyticsService,
+    private readonly bqMlService: BigQueryMlService,
+  ) {}
 
   @Get('summary')
   @ApiOperation({
@@ -27,4 +31,15 @@ export class AnalyticsController {
   async getSummary(@CurrentOrg() org: Organization) {
     return this.analyticsService.getSummary(org.id);
   }
+
+  @Get('bigquery-ml/blueprint')
+  @ApiOperation({
+    summary: 'Fase 3: BigQuery AI/ML Analytics Blueprint',
+    description: 'Returns pre-built Vertex AI & BigQuery ML query templates for enterprise ticket forecasting, semantic clustering, and SLA anomaly detection.',
+  })
+  @ApiResponse({ status: 200, description: 'BigQuery ML blueprint definitions.' })
+  getBigQueryMlBlueprint() {
+    return this.bqMlService.getMlBlueprint();
+  }
 }
+

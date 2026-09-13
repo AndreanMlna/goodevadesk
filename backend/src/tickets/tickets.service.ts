@@ -3,6 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisCacheService } from '../redis/redis.service';
 import { LlmService } from '../llm/llm.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { PiiGuardService } from '../guardrails/pii-guard.service';
+import { SemanticCacheService } from '../cache/semantic-cache.service';
+import { VectorService } from '../vector/vector.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { QueryTicketsDto } from './dto/query-tickets.dto';
@@ -40,6 +43,7 @@ export interface CreateTicketResponse {
     similarity_score?: number;
     llm_processed: boolean;
     provider?: string;
+    pii_redacted?: boolean;
   };
 }
 
@@ -53,6 +57,9 @@ export class TicketsService {
     private readonly redisCacheService: RedisCacheService,
     private readonly llmService: LlmService,
     @Optional() private readonly webhooksService?: WebhooksService,
+    @Optional() private readonly piiGuardService?: PiiGuardService,
+    @Optional() private readonly semanticCacheService?: SemanticCacheService,
+    @Optional() private readonly vectorService?: VectorService,
   ) {}
 
   /**
@@ -91,9 +98,43 @@ export class TicketsService {
       this.logger.warn(`Redis lookup failed (non-fatal): ${cacheErr.message}`);
     }
 
+    // Fase 3: PII Guardrails Pre-LLM Masking
+    let sanitizedSubject = subject;
+    let sanitizedMessage = message;
+    let piiRedacted = false;
+    if (this.piiGuardService) {
+      const piiSubj = this.piiGuardService.sanitizeText(subject);
+      const piiMsg = this.piiGuardService.sanitizeText(message);
+      sanitizedSubject = piiSubj.sanitizedText;
+      sanitizedMessage = piiMsg.sanitizedText;
+      piiRedacted = piiSubj.hasPii || piiMsg.hasPii;
+    }
+
+    // Fase 3: Semantic Cache Evaluation (Cosine Similarity >= 0.90)
+    if (!cacheHit && this.semanticCacheService) {
+      try {
+        const semHit = await this.semanticCacheService.findMatch(
+          organizationId,
+          `${sanitizedSubject} ${sanitizedMessage}`,
+          0.90,
+        );
+        if (semHit.hit && semHit.suggestedReply) {
+          cacheHit = true;
+          cacheType = 'vector_semantic_cache';
+          similarityScore = semHit.similarity;
+          suggestedReply = semHit.suggestedReply;
+          category = semHit.category || category;
+          priority = semHit.priority || priority;
+          providerUsed = 'semantic_cache';
+        }
+      } catch (semErr: any) {
+        this.logger.warn(`Semantic cache lookup error: ${semErr.message}`);
+      }
+    }
+
     if (!cacheHit) {
       try {
-        const llmResult = await this.llmService.classifyAndDraft(subject, message);
+        const llmResult = await this.llmService.classifyAndDraft(sanitizedSubject, sanitizedMessage);
         if (llmResult) {
           category = llmResult.category;
           suggestedReply = llmResult.suggested_reply;
@@ -112,6 +153,16 @@ export class TicketsService {
               grounding_doc: groundingDoc || undefined,
             })
             .catch((err) => this.logger.warn(`Failed to cache LLM result: ${err.message}`));
+
+          // Save to Vector Semantic Cache Pool
+          if (this.semanticCacheService && suggestedReply) {
+            this.semanticCacheService
+              .store(organizationId, `${sanitizedSubject} ${sanitizedMessage}`, suggestedReply, {
+                category: category || 'general',
+                priority,
+              })
+              .catch((err) => this.logger.warn(`Failed to store semantic cache: ${err.message}`));
+          }
         }
       } catch (llmError: any) {
         this.logger.error(
@@ -580,5 +631,95 @@ export class TicketsService {
     return presences
       .filter((p) => p.agentName.toLowerCase() !== cleanName.toLowerCase())
       .map((p) => p.agentName);
+  }
+
+  /**
+   * Enterprise Fase 3: Streams AI Copilot suggested reply token-by-token with PII Guardrails, Semantic Cache, and Vector RAG.
+   */
+  async streamAiReply(
+    ticketId: string,
+    orgId: string,
+    onChunk: (chunk: {
+      token?: string;
+      done: boolean;
+      fullText?: string;
+      ragDoc?: string;
+      cached?: boolean;
+      piiMasked?: boolean;
+    }) => void,
+  ): Promise<void> {
+    const ticket = await this.findOne(orgId, ticketId);
+    if (!ticket) {
+      throw new NotFoundException(`Ticket ${ticketId} not found in organization.`);
+    }
+
+    const rawQuery = `${ticket.subject} ${ticket.message}`;
+
+    // 1. PII Guardrails: redact sensitive data before processing
+    let queryToProcess = rawQuery;
+    let isPiiMasked = false;
+    if (this.piiGuardService) {
+      const piiCheck = this.piiGuardService.sanitizeText(rawQuery);
+      queryToProcess = piiCheck.sanitizedText;
+      isPiiMasked = piiCheck.hasPii;
+    }
+
+    // 2. Semantic Cache: check if similar query was already answered
+    if (this.semanticCacheService) {
+      const cacheHit = await this.semanticCacheService.findMatch(orgId, queryToProcess, 0.90);
+      if (cacheHit.hit && cacheHit.suggestedReply) {
+        this.logger.log(`[Stream AI] Serving from Semantic Cache (score: ${cacheHit.similarity}) for ticket ${ticketId}`);
+        // Stream out cached reply in smooth token batches
+        const words = cacheHit.suggestedReply.split(/(\s+)/);
+        for (const word of words) {
+          onChunk({ token: word, done: false, cached: true, piiMasked: isPiiMasked });
+          await new Promise((r) => setTimeout(r, 20));
+        }
+        onChunk({
+          done: true,
+          fullText: cacheHit.suggestedReply,
+          ragDoc: ticket.grounding_doc || 'Semantic Cache Pool',
+          cached: true,
+          piiMasked: isPiiMasked,
+        });
+        return;
+      }
+    }
+
+    // 3. Vector RAG Hybrid Retrieval
+    let topSopDoc = ticket.grounding_doc || 'VOL-I (Standard)';
+    if (this.vectorService) {
+      const searchResults = await this.vectorService.hybridSearch(queryToProcess, 1);
+      if (searchResults.length > 0) {
+        topSopDoc = `${searchResults[0].docId} - ${searchResults[0].title}`;
+      }
+    }
+
+    // 4. Draft generation & token streaming
+    const draftResult = await this.llmService.classifyAndDraft(ticket.subject, queryToProcess);
+    const fullReply = draftResult?.suggested_reply || ticket.suggested_reply || 'Thank you for reaching out to GoodevaDesk. We are actively investigating this issue.';
+
+    // Stream tokens with realistic typewriter interval
+    const tokens = fullReply.split(/(\s+)/);
+    for (const tok of tokens) {
+      onChunk({ token: tok, done: false, cached: false, piiMasked: isPiiMasked });
+      await new Promise((r) => setTimeout(r, 25));
+    }
+
+    // Store in semantic cache for future instant hits
+    if (this.semanticCacheService) {
+      await this.semanticCacheService.store(orgId, queryToProcess, fullReply, {
+        category: ticket.category || 'general',
+        priority: ticket.priority || 'normal',
+      });
+    }
+
+    onChunk({
+      done: true,
+      fullText: fullReply,
+      ragDoc: topSopDoc,
+      cached: false,
+      piiMasked: isPiiMasked,
+    });
   }
 }

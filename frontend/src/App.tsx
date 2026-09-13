@@ -318,6 +318,7 @@ export default function App() {
 
           {activeTab === 'analytics' && (
             <ExecutiveAnalytics
+              apiKey={apiKey}
               analyticsData={analyticsData}
               loading={loadingAnalytics}
               error={analyticsError}

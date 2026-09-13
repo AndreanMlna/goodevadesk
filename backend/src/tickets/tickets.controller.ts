@@ -10,7 +10,9 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -207,5 +209,50 @@ export class TicketsController {
       active_agents: otherAgents,
     };
   }
+
+  @Post(':id/ai-stream')
+  @ApiOperation({
+    summary: 'Fase 3: Stream AI Copilot suggested reply (Server-Sent Events)',
+    description:
+      'Streams token-by-token suggested reply with pre-LLM PII masking, semantic caching, and Vector RAG grounding.',
+  })
+  @ApiParam({ name: 'id', description: 'Ticket UUID identifier' })
+  @ApiResponse({ status: 200, description: 'SSE stream established.' })
+  async streamAiReply(
+    @CurrentOrg() org: Organization,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Res() res: Response,
+  ) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    const sendEvent = (data: any) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    let isAborted = false;
+    res.on('close', () => {
+      isAborted = true;
+    });
+
+    try {
+      await this.ticketsService.streamAiReply(id, org.id, (chunk) => {
+        if (!isAborted) {
+          sendEvent(chunk);
+        }
+      });
+    } catch (err: any) {
+      if (!isAborted) {
+        sendEvent({ error: err.message || 'Stream generation failed', done: true });
+      }
+    } finally {
+      if (!isAborted) {
+        res.end();
+      }
+    }
+  }
 }
+
 

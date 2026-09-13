@@ -122,3 +122,22 @@ model AuditLog {
   @@index([created_at])
   @@map("audit_logs")
 }
+
+// ==============================================================================
+// Enterprise Extension: Vector RAG Knowledge Base (pgvector & Semantic Search)
+// ==============================================================================
+model KnowledgeVector {
+  id              String   @id @default(uuid())
+  doc_id          String
+  title           String
+  category        String   // "billing" | "technical" | "general"
+  content         String   @db.Text
+  embedding       String?  @db.Text // Serialized 1536-dim vector for cross-db resilience
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([doc_id])
+  @@index([category])
+  @@map("knowledge_vectors")
+}
+

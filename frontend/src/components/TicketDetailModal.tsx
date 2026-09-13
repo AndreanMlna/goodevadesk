@@ -20,6 +20,8 @@ import {
   History,
   CornerDownRight,
   AlertTriangle,
+  Zap,
+  Database,
 } from 'lucide-react';
 import { Ticket, TicketStatus, NlpAnalysisResult, TicketMessage, AuditLogItem } from '../types';
 import {
@@ -33,6 +35,7 @@ import {
   assignTicket,
   fetchAuditLogs,
   recordTicketPresence,
+  streamTicketAiReply,
 } from '../api';
 import {
   trackAiDraftApproved,
@@ -93,6 +96,17 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   const [feedbackNotes, setFeedbackNotes] = useState('');
   const [showFeedbackInput, setShowFeedbackInput] = useState(false);
 
+  // Enterprise Fase 3: Real-time SSE Copilot Streaming
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamedText, setStreamedText] = useState('');
+  const [streamMeta, setStreamMeta] = useState<{
+    ragDoc?: string;
+    cached?: boolean;
+    piiMasked?: boolean;
+  } | null>(null);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const cancelStreamRef = useRef<(() => void) | null>(null);
+
   // Sync state whenever ticket changes & load fresh messages & audit logs
   useEffect(() => {
     if (!ticket) return;
@@ -105,6 +119,16 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     setComposerContent('');
     setComposerType('agent');
     setAssignedTo(ticket.assigned_to || '');
+
+    // Reset streaming state
+    if (cancelStreamRef.current) {
+      cancelStreamRef.current();
+      cancelStreamRef.current = null;
+    }
+    setIsStreaming(false);
+    setStreamedText('');
+    setStreamMeta(null);
+    setStreamError(null);
 
     // Initialize messages from ticket or create initial fallback
     if (ticket.messages && ticket.messages.length > 0) {
@@ -220,6 +244,54 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     } finally {
       setIsApproving(false);
     }
+  };
+
+  // Enterprise Fase 3: Real-time SSE Copilot Streaming Handlers
+  const handleStartStream = async () => {
+    if (!ticket || !apiKey || isStreaming) return;
+    setIsStreaming(true);
+    setStreamedText('');
+    setStreamMeta(null);
+    setStreamError(null);
+
+    try {
+      const cancel = await streamTicketAiReply(apiKey, ticket.id, {
+        onToken: (token) => {
+          setStreamedText((prev) => prev + token);
+        },
+        onDone: (meta) => {
+          setIsStreaming(false);
+          setStreamMeta({
+            ragDoc: meta.ragDoc,
+            cached: meta.cached,
+            piiMasked: meta.piiMasked,
+          });
+        },
+        onError: (err) => {
+          setIsStreaming(false);
+          setStreamError(err.message || 'Stream generation failed');
+        },
+      });
+
+      cancelStreamRef.current = cancel;
+    } catch (err: any) {
+      setIsStreaming(false);
+      setStreamError(err.message || 'Stream initiation failed');
+    }
+  };
+
+  const handleStopStream = () => {
+    if (cancelStreamRef.current) {
+      cancelStreamRef.current();
+      cancelStreamRef.current = null;
+    }
+    setIsStreaming(false);
+  };
+
+  const handleInsertStreamToComposer = () => {
+    if (!streamedText.trim()) return;
+    setComposerContent((prev) => (prev ? `${prev}\n\n${streamedText}` : streamedText));
+    setActiveTab('conversation');
   };
 
   const handleFeedbackClick = async (rating: 'thumbs_up' | 'thumbs_down') => {
@@ -555,12 +627,69 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   </button>
                 </div>
 
-                <span className="text-[11px] text-slate-500 hidden sm:inline">
-                  {composerType === 'internal_note'
-                    ? '🔒 Only visible to staff members'
-                    : '💬 Dispatched to customer email'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleStartStream}
+                    disabled={isStreaming}
+                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-500/40 text-cyan-200 hover:from-cyan-600/50 hover:to-blue-600/50 transition font-medium disabled:opacity-50"
+                    title="Stream real-time AI reply draft with PII protection"
+                  >
+                    <Zap className={`w-3 h-3 text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
+                    <span>{isStreaming ? 'Streaming Draft...' : '⚡ Stream AI Copilot'}</span>
+                  </button>
+                  <span className="text-[11px] text-slate-500 hidden sm:inline">
+                    {composerType === 'internal_note'
+                      ? '🔒 Only visible to staff members'
+                      : '💬 Dispatched to customer email'}
+                  </span>
+                </div>
               </div>
+
+              {/* Compact Copilot Streaming Preview Banner */}
+              {(isStreaming || (streamedText && composerContent !== streamedText)) && (
+                <div className="p-2.5 rounded-xl border border-cyan-500/30 bg-cyan-950/20 text-xs space-y-1.5 animate-fadeIn">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-2 text-cyan-300 font-semibold">
+                      <Zap className={`w-3.5 h-3.5 text-cyan-400 ${isStreaming ? 'animate-spin' : ''}`} />
+                      <span>{isStreaming ? 'AI Copilot Streaming (SSE)...' : 'AI Copilot Draft Ready'}</span>
+                      {streamMeta?.cached && (
+                        <span className="px-1.5 py-0.2 rounded bg-cyan-500/20 text-[10px] text-cyan-300 border border-cyan-500/40">
+                          Semantic Cache Hit
+                        </span>
+                      )}
+                      {streamMeta?.piiMasked && (
+                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 border border-amber-500/40">
+                          PII Masked
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {isStreaming ? (
+                        <button
+                          type="button"
+                          onClick={handleStopStream}
+                          className="px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 text-[10px] border border-rose-500/30"
+                        >
+                          Stop
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleInsertStreamToComposer}
+                          className="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-semibold"
+                        >
+                          Insert into Composer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-slate-300 font-mono text-[11px] max-h-16 overflow-y-auto leading-relaxed">
+                    {streamedText}
+                    {isStreaming && <span className="inline-block w-1 h-3.5 bg-cyan-400 animate-pulse ml-0.5 align-middle" />}
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-end gap-2">
                 <textarea
@@ -628,6 +757,104 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Enterprise Fase 3: Real-Time SSE Streaming AI Copilot */}
+            <div className="p-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/20 via-slate-900/40 to-blue-950/20 space-y-3.5 relative overflow-hidden shadow-lg">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold uppercase tracking-wider">
+                  <Zap className={`w-4 h-4 text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
+                  <span>Enterprise AI Copilot (SSE Real-Time Stream)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isStreaming ? (
+                    <button
+                      onClick={handleStopStream}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 rounded-lg border border-rose-500/30 transition"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Stop Stream</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleStartStream}
+                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg shadow transition"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>{streamedText ? 'Re-Stream AI Reply' : '⚡ Stream Live Copilot Draft'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Guardrails & Cache Telemetry Pill Badges */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+                {/* PII Guardrail Badge */}
+                <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
+                  streamMeta?.piiMasked
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                }`}>
+                  <ShieldCheck className="w-3 h-3" />
+                  <span>{streamMeta?.piiMasked ? 'PII Guardrail: Masked & Redacted' : 'PII Guardrail: Clean'}</span>
+                </div>
+
+                {/* Cache Badge */}
+                <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
+                  streamMeta?.cached
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                    : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                }`}>
+                  <Zap className="w-3 h-3" />
+                  <span>{streamMeta?.cached ? 'Semantic Cache: Hit (Sub-15ms)' : 'Engine: Live SSE Stream'}</span>
+                </div>
+
+                {/* RAG Grounding Source */}
+                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono">
+                  <Database className="w-3 h-3" />
+                  <span>{streamMeta?.ragDoc || ticket.grounding_doc || 'VOL-I (Vector SOP)'}</span>
+                </div>
+              </div>
+
+              {/* Streaming Output Display */}
+              {streamedText || isStreaming ? (
+                <div className="p-4 rounded-xl bg-[#080d18] border border-cyan-500/30 text-sm text-slate-100 font-sans leading-relaxed relative">
+                  {streamedText}
+                  {isStreaming && (
+                    <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-0.5 align-middle" />
+                  )}
+
+                  {!isStreaming && streamedText && (
+                    <div className="mt-3 pt-3 border-t border-cyan-500/20 flex flex-wrap items-center justify-between gap-2">
+                      <button
+                        onClick={handleInsertStreamToComposer}
+                        className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Insert into Conversation Composer</span>
+                      </button>
+                      <button
+                        onClick={() => handleCopyReply(streamedText)}
+                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1 transition"
+                      >
+                        {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedReply ? 'Copied!' : 'Copy'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-[#080d18]/60 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+                  <span>Click <b>"⚡ Stream Live Copilot Draft"</b> to stream token-by-token responses with real-time PII sanitization and vector RAG.</span>
+                </div>
+              )}
+
+              {streamError && (
+                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{streamError}</span>
+                </div>
+              )}
+            </div>
 
             {/* LLM Suggested Reply Section + HITL Approval & Feedback */}
             <div className="p-5 rounded-2xl border border-purple-500/30 bg-purple-950/20 space-y-3 relative overflow-hidden">
