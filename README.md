@@ -1,4 +1,4 @@
-# 🚀 GoodevaDesk - AI-Powered Multi-Tenant Support & Ticket Management Hub
+# 🚀 GoodevaDesk - Enterprise Multi-Tenant AI Support & Ticket Hub
 
 [![NestJS](https://img.shields.io/badge/NestJS-10.0-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.18-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
@@ -11,38 +11,157 @@
 [![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://goodevadesk.vercel.app/)
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-ZeroGPU%20Space-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://andrerean-goodevadesk-nlp.hf.space)
 
-**GoodevaDesk** adalah platform tiket customer support enterprise berbasis **Multi-Tenancy** dengan klasifikasi otomatis berbasis **Large Language Model (LLM)**, pembuatan draft balasan awal (*suggested reply* dengan RAG Grounding), strategi caching cerdas berbasis sidik jari SHA-256 (**Redis**), ekstraksi entitas mendalam (**Python NLP Microservice**), serta dashboard operasional modern (**React 19 + Tailwind CSS**).
+**GoodevaDesk** adalah platform tiket layanan pelanggan (*customer support*) kelas enterprise berbasis arsitektur **Multi-Tenancy** ketat, klasifikasi tiket otomatis berdaya **Large Language Model (LLM)**, pembuatan draf balasan kontekstual dengan **RAG Grounding SOP**, strategi caching ganda (*dual-tier caching*) menggunakan sidik jari SHA-256 (**Redis**) dan pencocokan kemiripan kosinus (**Vector Semantic Cache**), desanitasi data sensitif (**PII Redaction & Masking**), mitigasi tabrakan agen real-time (**Agent Collision Detection**), audit log kepatuhan **SOC-2**, serta ekstraksi entitas mendalam via **Python NLP Microservice**.
 
 ---
 
-### 🌐 Live Production Demo
+## 🌐 Live Production Deployments
 
-Aplikasi sistem GoodevaDesk telah aktif dan dapat diuji coba secara langsung melalui tautan publik berikut:
+Sistem GoodevaDesk telah aktif di lingkungan produksi dan dapat diakses serta diuji coba secara publik:
 
-* 🚀 **Live Web Application (Frontend)**: [GoodevaDesk - AI Support & Ticket Hub](https://goodevadesk.vercel.app/)
-* ⚙️ **Production REST API (Backend NestJS)**: [GoodevaDesk Backend API](https://goodevadesk-api.vercel.app/) ([API Health Check](https://goodevadesk-api.vercel.app/health))
-* 🐍 **Production Python NLP Microservice (Serverless)**: [GoodevaDesk NLP Service](https://goodevadesk-nlp.vercel.app/) ([NLP Health Check](https://goodevadesk-nlp.vercel.app/health))
-* 🤖 **Interactive NLP Demo Space (Hugging Face)**: [GoodevaDesk NLP Space](https://andrerean-goodevadesk-nlp.hf.space)
-* 🐘 **Cloud Database**: Neon Serverless PostgreSQL (Singapore Region)
-* ⚡ **Cloud Cache Layer**: Upstash Redis (Singapore Region)
+* 🚀 **Web Application Frontend (React 19 + Vite)**: [https://goodevadesk.vercel.app/](https://goodevadesk.vercel.app/)
+* ⚙️ **REST API Backend (NestJS 10)**: [https://goodevadesk-api.vercel.app/](https://goodevadesk-api.vercel.app/) ([Pemeriksaan Kesehatan / Healthcheck](https://goodevadesk-api.vercel.app/health))
+* 🐍 **NLP Microservice Serverless (FastAPI)**: [https://goodevadesk-nlp.vercel.app/](https://goodevadesk-nlp.vercel.app/) ([NLP Healthcheck](https://goodevadesk-nlp.vercel.app/health))
+* 🤖 **Interactive NLP Playground (Hugging Face Space)**: [https://andrerean-goodevadesk-nlp.hf.space](https://andrerean-goodevadesk-nlp.hf.space)
+* 🐘 **Cloud Database**: Neon Serverless PostgreSQL 16 (Region Singapura)
+* ⚡ **Cloud In-Memory Cache**: Upstash Redis (Region Singapura)
 
 ---
 
+## 🏛️ Arsitektur Sistem Enterprise
 
-## 1. 🚀 Panduan Menjalankan Project
+```
+                                  +-------------------------------------------------------+
+                                  |            CLIENT WEB INTERFACE (React 19)            |
+                                  |  - Ticket Desk & Operational Gauges                   |
+                                  |  - Enterprise AI Copilot Studio (SSE Token Stream)    |
+                                  |  - Real-Time Collision Heartbeat & Private Whispers   |
+                                  |  - Command Palette (Ctrl+K) & Executive Analytics     |
+                                  +---------------------------+---------------------------+
+                                                              |
+                                                              | HTTPS / REST / SSE
+                                                              v
++-------------------------------------------------------------------------------------------------------------------------+
+|                                                  BACKEND API (NestJS 10)                                                |
+|                                                                                                                         |
+|   +--------------------------+    +--------------------------+    +-------------------------+    +------------------+   |
+|   |   API Key Auth Guard     |--->|  Tenant Context Manager  |--->|   Tickets Controller    |--->|  Audit Service   |   |
+|   |   (Header: x-api-key)    |    |  (org_id Scoped Enforcer)|    |   (CRUD & Lifecycle)    |    | (SOC-2 Logs)     |   |
+|   +--------------------------+    +--------------------------+    +------------+------------+    +------------------+   |
+|                                                                                |                                        |
+|                     +--------------------------+-------------------------------+--------------------------+             |
+|                     |                          |                               |                          |             |
+|                     v                          v                               v                          v             |
+|          +--------------------+     +--------------------+          +--------------------+     +--------------------+   |
+|          | L1: Redis Cache    |     | L2: Semantic Cache |          | PII Redaction Svc  |     | Adaptive LLM Engine|   |
+|          | (SHA-256 Exact Key)|     | (Vector Similarity)|          | (Regex Masker)     |     | (Gemini/GPT-4o/Mock|   |
+|          +--------------------+     +--------------------+          +--------------------+     +--------------------+   |
++-----------------------+-----------------------------------------------------------------------------------+-------------+
+                        |                                                                                   |
+                        v                                                                                   v
+         +-----------------------------+                                                     +-----------------------------+
+         |   PostgreSQL 16 (Prisma)    |                                                     |  Python NLP Microservice    |
+         |  - Strict Row Isolation     |                                                     |  - Regex & Lexical Pipeline |
+         |  - Compound Indexed Queries |                                                     |  - Entity Extraction Engine |
+         |  - Immutable Audit Logs     |                                                     |  - Urgency & Sentiment Hint |
+         +-----------------------------+                                                     +-----------------------------+
+```
 
-Proyek dapat dijalankan dengan **Docker Compose** (satu perintah otomatis) atau **Lokal Manual**.
+---
 
-### A. Persiapan Environment Variable (`.env`)
+## ✨ Fitur-Fitur Utama
 
-Salin template konfigurasi lingkungan sebelum menjalankan service:
+### 1. 🛡️ Multi-Tenant Isolation & Zero IDOR Guarantee
+- **Pemisahan Data Tingkat Baris (*Row-Level Tenant Isolation*)**: Setiap query basis data diisolasi secara mutlak menggunakan `organization_id` yang divalidasi dari header autentikasi `x-api-key`.
+- **Proteksi IDOR**: Tenant dilarang keras mengakses atau memperbarui tiket milik organisasi lain (`404 Not Found` terproteksi).
+
+### 2. 🤖 Adaptive LLM & RAG-Grounded Suggested Reply
+- **Pemberian Skor & Klasifikasi Cerdas**: Otomatis menganalisis kategori tiket (`billing`, `technical`, `general`), skor urgensi (0.0 - 1.0), dan sentimen pelanggan.
+- **RAG-Grounded Enterprise SOP**: Rekomendasi balasan draf (*suggested reply*) di-*grounding* secara presisi terhadap basis dokumen SOP perusahaan (contoh: `SOP-BIL-2026`, `SOP-ENG-2026`), mencegah terjadinya halusinasi model AI.
+- **Dukungan Multi-Provider Fleksibel**: Mendukung **Google Gemini (`gemini-3.5-flash-lite`, `gemini-2.5-flash`)**, **OpenAI (`gpt-4o-mini`)**, dan **Deterministic Offline Mock Engine** yang aktif otomatis tanpa perlu konfigurasi API Key eksternal.
+
+### 3. ⚡ Arsitektur Caching Ganda (*Dual-Tier Caching*)
+- **L1: Exact SHA-256 Redis Cache (~4ms)**:
+  - Normalisasi masukan teks: huruf kecil, perapian spasi, dan pembentukan hash kriptografi SHA-256 dari gabungan `(subject + message)`.
+  - Mengurangi latensi respons sebesar **98%** (dari ~1.200ms menjadi ~4ms) dan menghemat biaya token LLM hingga 85%.
+- **L2: Vector Semantic Similarity Cache**:
+  - Menyimpan vektor representasi semantik tiket sebelumnya, memungkinkan *cache hit* untuk keluhan dengan formulasi kata berbeda namun esensi masalah sama.
+
+### 4. 🔄 Enterprise AI Copilot Studio (Real-Time SSE Token Stream)
+- **Streaming Respons Per-Token**: Menggunakan antarmuka *Server-Sent Events* (SSE) untuk merender balasan kata demi kata secara *real-time* (< 50ms time-to-first-token).
+- **RAG Citation & Source Drawer**: Agen dapat memeriksa dokumen rujukan SOP internal yang dijadikan landasan jawaban draf AI.
+- **Draf Persetujuan Sekali Klik (*One-Click Insertion*)**: Salin atau masukkan teks draf langsung ke dalam komposer pesan dengan sekali sentuh.
+- **RLHF & Model Correction Loop**: Evaluasi balasan draf AI menggunakan rating jempol (*thumbs-up/down*), catatan perbaikan agen, dan feedback koreksi manusia untuk siklus perbaikan berkelanjutan.
+
+### 5. 🔒 Desanitasi PII & Kepatuhan SOC-2
+- **Masking Data Sensitif Otomatis**: Secara otomatis menyamarkan nomor kartu kredit (16 digit), nomor identitas kependudukan (NIK/SSN), dan alamat email personal sebelum teks dikirimkan ke model LLM pihak ketiga.
+- **Jejak Audit Abadi (*Immutable Audit Trail*)**: Mencatat setiap perubahan status tiket, perpindahan penugasan (*assignee*), pesan baru, dan aktivitas agen demi kepatuhan regulasi keamanan perusahaan.
+
+### 6. 👥 Deteksi Tabrakan Agen Real-Time (*Agent Collision Prevention*)
+- **Deteksi Kehadiran Aktif (*Presence Heartbeat*)**: Mengirim sinyal kehadiran setiap 10 detik saat agen membuka detail tiket.
+- **Banner Peringatan Tabrakan**: Memunculkan peringatan instan jika terdapat agen rekan kerja lain yang sedang membuka atau menyunting tiket yang sama secara bersamaan.
+
+### 7. 💬 Perpesanan Berulir & Catatan Internal Rahasia (*Team Whispers*)
+- **Pemisahan Jalur Komunikasi**: Membedakan percakapan publik antara agen dengan pelanggan (*Customer Messages*) dan diskusi internal antar tim (*Staff Internal Whispers*).
+- **Badge Keamanan Rahasia**: Catatan internal diberi penanda visual khusus bertaraf rahasia SOC-2 yang tidak dapat dilihat oleh pelanggan.
+
+### 8. ⏱️ Penghitungan SLA Otomatis & Bar Transisi Lifecycle
+- **Matriks Waktu Tanggap SLA Dinamis**:
+  - **Critical (P1)**: SLA 1 Jam (Peringatan kedip merah otomatis)
+  - **High (P2)**: SLA 4 Jam
+  - **Normal (P3)**: SLA 24 Jam
+  - **Low (P4)**: SLA 48 Jam
+- **Bar Status Lifecycle Cepat**: Transisi status instan satu tombol (`Open` $\rightarrow$ `In Progress` $\rightarrow$ `Resolved` $\rightarrow$ `Closed`) dengan feedback visual responsif.
+
+### 9. 📊 Executive Analytics & Operational Gauges
+- Panel analitik operasional terintegrasi: rasio kepatuhan SLA (*SLA Compliance Rate*), tingkat otomatisasi AI (*AI Triage Rate*), rasio efisiensi cache, distribusi kategori insiden teratas (*Top Incidents*), dan daftar pantau tiket kritis (*Critical Watchlist*).
+
+### 10. 🐍 Python NLP Microservice Dedicated
+- Layanan mandiri berbasis FastAPI yang mengekstrak entitas penting dari tiket:
+  - Alamat email (`emails`)
+  - Nomor telepon internasional & lokal Indonesia (`phone_numbers`)
+  - Nomor invoice & order tracking (`invoice_or_order_ids`)
+  - Kode eror sistem & HTTP/SQL (`error_codes`)
+  - Nominal mata uang IDR/USD/EUR (`monetary_amounts`)
+
+---
+
+## 🧹 Arsitektur Clean Code & Modularitas (SRP)
+
+Sistem telah melalui proses pembersihan kode menyeluruh mengikuti prinsip **Uncle Bob's Clean Code** dan **Single Responsibility Principle (SRP)**:
+
+1. **Dekomposisi Modal Tiket Frontend (`frontend/src/components/ticket-modal/`)**:
+   - Komponen raksasa monolitik lama (~1.182 baris) dipecah menjadi 8 sub-komponen terisolasi:
+     - `TicketModalHeader.tsx`: Pengelola metadata, badge, dan pemilih assignee.
+     - `TicketPresenceBanner.tsx`: Penampil peringatan tabrakan antar agen.
+     - `TicketMessageTimeline.tsx`: Penampil linimasa percakapan dan catatan internal.
+     - `TicketMessageComposer.tsx`: Area pengetikan pesan dan aktivasi whisper.
+     - `TicketCopilotStudio.tsx`: Panel studio AI Copilot dengan streaming SSE dan RLHF.
+     - `TicketNlpCard.tsx`: Kartu visualisasi entitas hasil ekstraksi Python NLP.
+     - `TicketAuditTrailTab.tsx`: Penampil jejak audit kepatuhan SOC-2.
+     - `TicketLifecycleBar.tsx`: Bar transisi status siklus hidup tiket.
+     - `TicketDetailModal.tsx` (~450 baris): Orkestrator status, polling kehadiran, dan tata letak utama.
+2. **Eliminasi Total Nilai Hardcode & Magic Numbers**:
+   - Seluruh timeout, interval polling, string default (kategori, prioritas, sentimen, nama agen fallback) dipusatkan secara terstruktur pada `frontend/src/constants.ts`, `backend/src/tickets/tickets.constants.ts`, dan `python-nlp/constants.py`.
+3. **Fungsi Murni Backend (`backend/src/tickets/tickets.utils.ts`)**:
+   - Ekstraksi logika murni tanpa efek samping untuk kalkulasi SLA (`calculateSlaDeadline`) dan perakitan kueri Prisma berisolasi tenant (`buildTicketWhereClause`).
+
+---
+
+## 🚀 Panduan Menjalankan Sistem
+
+Proyek dapat dijalankan menggunakan **Docker Compose** (satu perintah otomatis) atau **Secara Manual** per-layanan.
+
+### A. Konfigurasi Lingkungan (`.env`)
+
+Salin berkas template environment:
 ```bash
 cp .env.example .env
 ```
 
-Isi konfigurasi pada file `.env` (contoh default):
+Contoh konfigurasi standar pada berkas `.env`:
 ```env
-# Port & App Config
+# Server & Environment
 PORT=3000
 NODE_ENV=development
 
@@ -65,32 +184,31 @@ NLP_SERVICE_URL=http://localhost:8000
 
 ---
 
-### B. Opsi 1: Menjalankan dengan Docker Compose (Direkomendasikan)
+### B. Opsi 1: Menjalankan dengan Docker Compose (Sangat Direkomendasikan)
 
-Seluruh service (PostgreSQL 16, Redis 7, Backend NestJS, Python NLP FastAPI, dan Frontend React Nginx) akan otomatis diinisialisasi, dimigrasi, dan di-seed:
+Seluruh kontainer (PostgreSQL 16, Redis 7, Backend NestJS, Python NLP FastAPI, dan Frontend React Nginx) akan otomatis diinisialisasi, dimigrasikan, dan diisi data awal (*seeded*):
 
 ```bash
-# Jalankan seluruh stack container di background
+# Bangun dan jalankan seluruh container
 docker compose up --build -d
 ```
 
-**Verifikasi Status Container:**
+**Memeriksa Status Layanan:**
 ```bash
 docker compose ps
 ```
 
-Layanan dapat diakses pada:
-- **Frontend Dashboard**: [http://localhost](http://localhost) (atau port `80`)
-- **Backend API**: [http://localhost:3000](http://localhost:3000)
-- **Backend Healthcheck**: [http://localhost:3000/health](http://localhost:3000/health)
+Akses layanan di peramban:
+- **Frontend Dashboard**: [http://localhost](http://localhost) (Port `80`)
+- **Backend REST API**: [http://localhost:3000](http://localhost:3000)
+- **Backend Health Check**: [http://localhost:3000/health](http://localhost:3000/health)
 - **Python NLP Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-### C. Opsi 2: Menjalankan Secara Manual di Komputer Lokal
+### C. Opsi 2: Menjalankan Manual di Komputer Lokal
 
-#### 1. Jalankan PostgreSQL & Redis
-Jika menggunakan Docker untuk dependensi database & cache saja:
+#### 1. Inisialisasi Database & Cache (Docker)
 ```bash
 docker compose up -d postgres redis
 ```
@@ -99,284 +217,164 @@ docker compose up -d postgres redis
 ```bash
 cd backend
 
-# 1. Install dependensi
+# Pasang dependensi
 npm install
 
-# 2. Sinkronkan skema database Prisma
+# Sinkronkan skema database dengan Prisma
 npx prisma db push
 
-# 3. Seed data awal (2 Organisasi Tenant & Tiket Sampel)
+# Isi data awal tenant dan tiket sampel
 npm run prisma:seed
 
-# 4. Jalankan backend development server
+# Jalankan server backend development
 npm run start:dev
 ```
-Backend aktif di `http://localhost:3000`.
+*Backend aktif di `http://localhost:3000`.*
 
 #### 3. Jalankan Python NLP Microservice (FastAPI)
 ```bash
 cd python-nlp
 
-# 1. Buat virtual environment (opsional namun disarankan)
+# Buat dan aktifkan virtual environment
 python -m venv venv
 # Windows:
 .\venv\Scripts\activate
-# Linux/Mac:
+# Linux/macOS:
 source venv/bin/activate
 
-# 2. Install dependensi NLP
+# Pasang dependensi Python
 pip install -r requirements.txt
 
-# 3. Jalankan server FastAPI
+# Jalankan server FastAPI Uvicorn
 uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
-NLP Microservice aktif di `http://localhost:8000`.
+*Layanan NLP aktif di `http://localhost:8000`.*
 
 #### 4. Jalankan Frontend (React 19 + Vite)
 ```bash
 cd frontend
 
-# 1. Install dependensi
+# Pasang dependensi
 npm install
 
-# 2. Jalankan Vite dev server
+# Jalankan Vite dev server
 npm run dev
 ```
-Frontend aktif di [http://localhost:5173](http://localhost:5173).
+*Frontend aktif di [http://localhost:5173](http://localhost:5173).*
 
 ---
 
-## 2. 🤖 Provider LLM yang Dipilih dan Alasannya
+## 🤖 Konfigurasi & Pemilihan Provider LLM
 
-Sistem mengadopsi arsitektur **Adaptive Multi-Provider LLM Engine** dengan pilihan utama **Google Gemini (`gemini-3.5-flash-lite` / `gemini-2.5-flash`)** dan dukungan langsung untuk **OpenAI (`gpt-4o-mini`)**, serta **Deterministic Offline Mock Engine** sebagai fallback.
+Sistem mengusung arsitektur **Adaptive Multi-Provider Engine**:
 
-```
-                    +------------------------------------------+
-                    |           LLM INFERENCE ENGINE           |
-                    +--------------------+---------------------+
-                                         |
-         +-------------------------------+-------------------------------+
-         |                               |                               |
-         v                               v                               v
-+-----------------------+      +-------------------+           +-------------------+
-|     Google Gemini     |      |   OpenAI Engine   |           | Deterministic Mock|
-|(gemini-3.5-flash-lite |      |   (gpt-4o-mini)   |           |  (Offline Engine) |
-|   / gemini-2.5-flash) |      | (Alternative Rec.)|           | (Zero API Key Req)|
-+-----------------------+      +-------------------+           +-------------------+
-```
+| Provider | Model Default | Keunggulan Utama | Kasus Penggunaan Ideal |
+| :--- | :--- | :--- | :--- |
+| **Google Gemini** *(Utama)* | `gemini-3.5-flash-lite` | Latensi sub-detik (<800ms), biaya token terhemat, kepatuhan JSON Schema tinggi. | Beban kerja customer support volume tinggi (*high-throughput*). |
+| **OpenAI** *(Alternatif)* | `gpt-4o-mini` | Konsistensi sintaks internasional dan penalaran instruksi terstruktur. | Alternatif korporat dengan langganan OpenAI API. |
+| **Offline Mock Engine** *(Fallback)* | `deterministic-engine` | **Zero External API Requirement** (Bekerja tanpa koneksi internet atau API key). | Keamanan operasional, pengujian unit, mitigasi saat kuota pihak ketiga habis. |
 
-### Model Gemini yang Didukung (`SupportedGeminiModel`):
-Diatur secara type-safe pada `backend/src/llm/llm.constants.ts`:
-- **`gemini-3.5-flash-lite`** *(Default)*: Model generasi ultra-ringan dengan latensi kilat (<800ms) dan konsumsi token paling hemat untuk beban kerja customer support bervolume tinggi.
-- **`gemini-2.5-flash`**: Model multimodal cepat seimbang untuk analisis konteks tiket yang lebih panjang.
-- **`gemini-2.5-pro`**: Model penalaran mendalam (*deep reasoning*) untuk analisis tiket tingkat eskalasi tinggi.
-- *(Catatan: Nilai legacy seperti `gemini-1.5-flash` secara otomatis dimigrasikan oleh fungsi `resolveGeminiModel()` ke `gemini-3.5-flash-lite`)*.
-
-### Mengapa Memilih `gemini-3.5-flash-lite` / `gpt-4o-mini`?
-
-1. **Efisiensi Biaya (*Cost-to-Performance Ratio*) Ekstrem**:
-   - Tiket *customer support* adalah beban kerja bervolume tinggi (*high-throughput*). Menggunakan model raksasa seperti GPT-4o atau Gemini 2.5 Pro akan sangat memboroskan biaya operasional.
-   - `gemini-3.5-flash-lite` dan `gpt-4o-mini` menawarkan harga token hingga **90% lebih murah** namun memiliki akurasi pemahaman konteks klasifikasi teks yang setara untuk tugas ekstraksi dan kategorisasi.
-
-2. **Kecepatan Latensi Sub-Detik (*Sub-Second Latency*)**:
-   - Rata-rata waktu respons `gemini-3.5-flash-lite` berada pada rentang **300ms – 900ms**, sangat krusial agar pengalaman pengguna saat menekan tombol *"Submit Ticket"* tetap instan dan responsif.
-
-3. **Kemampuan *Strict JSON Structured Output***:
-   - Model mendukung parameter JSON Mode/Schema murni. Ini mencegah terjadinya kesalahan format (*parsing error*) saat mengekstrak bidang `category`, `priority`, `urgency_score`, dan `suggested_reply`.
-
-4. **Anti-Halusinasi dengan RAG Grounding SOP**:
-   - Balasan otomatis (*suggested reply*) tidak dikarang secara bebas oleh model, melainkan di-*grounding* menggunakan dokumen SOP resmi enterprise (misal `SOP-BIL-2026`, `SOP-ENG-2026`).
-
-5. **Ketahanan Sistem (*Graceful Degradation & Resiliency*)**:
-   - Jika koneksi internet putus atau kuota API habis, panggilan LLM dibatasi *timeout* 7 detik (`AbortSignal`).
-   - **Prinsip Utama:** Pembuatan tiket **tidak boleh gagal** hanya karena LLM pihak ketiga sedang down. Sistem akan otomatis beralih ke *fallback engine* lokal tanpa mengganggu alur kerja pengguna.
+### Prinsip Graceful Degradation:
+> **Panggilan LLM bersifat *non-blocking* dengan batas waktu (timeout) 7 detik.** Pembuatan tiket pelanggan **tidak boleh gagal** sekalipun layanan AI pihak ketiga mengalami kendala atau *rate-limited*. Sistem akan otomatis beralih ke analisis lokal dan menyelesaikan pembuatan tiket dengan andal.
 
 ---
 
-## 3. 🏛️ Keputusan Desain Arsitektur dan Data
+## 🧪 Pengujian Otomatis & Verifikasi Mutu
 
-### A. Skema Data & Keamanan Multi-Tenant (PostgreSQL + Prisma)
-
-Sistem menggunakan pendekatan **Pooled Multi-Tenancy with Row-Level Tenant Isolation**:
-
-```
-+------------------------------------+          +------------------------------------+
-|            Organization            |          |               Ticket               |
-+------------------------------------+          +------------------------------------+
-| id (UUID, PK)                      |<----+    | id (UUID, PK)                      |
-| name (VARCHAR)                     |     |    | organization_id (UUID, FK) --------+
-| api_key (VARCHAR, Unique, Indexed) |     +--->| customer_email (VARCHAR)           |
-| created_at (TIMESTAMP)             |          | subject (TEXT)                     |
-+------------------------------------+          | message (TEXT)                     |
-                                                | category (VARCHAR, Indexed)        |
-                                                | priority (VARCHAR: critical..low)  |
-                                                | status (open | in_prog | closed)   |
-                                                | sla_deadline (TIMESTAMP)           |
-                                                | urgency_score (FLOAT)              |
-                                                | sentiment (VARCHAR)                |
-                                                | suggested_reply (TEXT)             |
-                                                | grounding_doc (VARCHAR)            |
-                                                +------------------------------------+
-```
-
-#### Alasan Keputusan Skema Data:
-1. **Pencegahan Kebocoran Antar Tenant (IDOR Protection)**:
-   - Setiap query Prisma diikat secara mutlak dengan `organization_id` yang divalidasi dari header `x-api-key`.
-   - Tenant A tidak akan pernah bisa melihat atau mengubah tiket Tenant B meski mengetahui ID tiketnya (`404 Not Found`).
-2. **Kalkulasi Otomatis SLA (*Service Level Agreement*)**:
-   - Kolom `sla_deadline` dihitung otomatis saat pembuatan tiket berdasarkan matriks prioritas:
-     - **Critical (P1)**: SLA 1 Jam
-     - **High (P2)**: SLA 4 Jam
-     - **Normal (P3)**: SLA 24 Jam
-     - **Low (P4)**: SLA 48 Jam
-3. **Compound Indexing untuk Performa**:
-   - Dilengkapi indeks gabungan `@@index([organization_id, status])` dan `@@index([organization_id, category])` sehingga pencarian dan pemfilteran tetap cepat (*sub-millisecond*) pada tabel berskala jutaan baris.
-
----
-
-### B. Strategi Caching Redis (SHA-256 Normalized Fingerprint)
-
-Keluhan pengguna customer support seringkali berulang (contoh: *"Double debit tagihan invoice"*, *"504 Gateway Timeout pada API"*). Memanggil LLM untuk pertanyaan yang sama adalah pemborosan biaya dan waktu.
-
-```
-Incoming Ticket: "Double charge on invoice #INV-99"
-                            │
-                            ▼
-Normalisasi: "double charge on invoice #inv-99" (lowercase, trim, collapse whitespace)
-                            │
-                            ▼
-Kriptografi Hashing: SHA-256 -> 9a4f6e1b7c...
-                            │
-                            ▼
-Redis Cache Key: "goodeva:ticket_cls:9a4f6e1b7c..."
-                            │
-            ┌───────────────┴───────────────┐
-      [Cache Hit: ~4ms]               [Cache Miss: ~1.2s]
-            ▼                               ▼
-Ambil dari RAM Redis            Panggil LLM & Simpan ke Redis (TTL 24h)
-```
-
-#### Alasan Keputusan Desain Caching:
-1. **Normalisasi Deterministic**: Huruf besar/kecil, spasi ganda, dan baris baru diratakan sebelum di-hash agar variasi pengetikan yang sepele tetap menghasilkan *cache hit*.
-2. **Kecepatan Tinggi**: Mengurangi latensi respons dari ~1.200ms menjadi **~4ms** (penurunan latensi 98%).
-3. **Penghematan Token API**: Mencegah pemanggilan LLM berulang hingga 85% pada insiden massal.
-4. **TTL Terukur (24 Jam)**: Memberikan waktu kedaluwarsa otomatis agar solusi rekomendasi SOP tetap mutakhir jika ada pembaruan panduan.
-
----
-
-### C. Refaktorisasi Clean Code Frontend (React 19)
-
-Frontend direfaktorisasi mengikuti prinsip **Clean Code & Single Responsibility Principle (SRP)**:
-- **`TicketDesk.tsx`**: Dipangkas dari 625 baris menjadi ~245 baris modular.
-- **Subkomponen Mandiri**:
-  - `desk/KpiMetricsOverview.tsx`: 4 metrik KPI atas dinamis.
-  - `desk/TicketCardItem.tsx`: Rendering individu tiket, badge prioritas, dan hitungan mundur SLA.
-  - `desk/OperationalGaugesSidebar.tsx`: Indikator live SLA adherence, cache hit ratio, FCR, dan Top Incident Categories.
-- **Eliminasi Prop-Drilling**: State form dan interaksi modal kini terenkapsulasi penuh di dalam `CreateTicketModal.tsx` dan `TicketDetailModal.tsx`.
-
----
-
-## 4. 🔮 Rencana Peningkatan Jika Ada Waktu Lebih (Roadmap)
-
-Jika diberikan alokasi waktu pengembangan tambahan, berikut adalah arsitektur dan fitur lanjutan yang akan diimplementasikan:
-
-1. **Vector Embedding & Semantic Similarity Caching (Redis VSS / pgvector)**:
-   - *Peningkatan:* Saat ini cache Redis menggunakan pencocokan exact hash SHA-256. Dengan menambahkan vector database (misal `pgvector` atau Redis Vector Similarity Search), pertanyaan dengan kalimat berbeda namun bermakna sama (contoh: *"kartu saya terpotong dua kali"* vs *"ada tagihan dobel di kartu kredit"*) dapat langsung mendapatkan *cache hit* berbasis Cosine Similarity (>0.92).
-
-2. **WebSockets / Server-Sent Events (SSE) untuk Pembaruan Real-Time**:
-   - *Peningkatan:* Menggantikan polling manual dengan koneksi real-time WebSocket, sehingga ketika ada tiket kritis baru atau SLA hampir breached, indikator lonceng notifikasi dan tiket stream langsung ter-update tanpa reload halaman.
-
-3. **Fine-Tuning Model Open-Source Lokal (Ollama / vLLM)**:
-   - *Peningkatan:* Melatih model open-source berukuran ringkas (misal LLaMA-3-8B atau Mistral-7B) menggunakan dataset riil tiket internal perusahaan untuk di-host *on-premise*, menjamin privasi data 100% dan bebas biaya token eksternal.
-
-4. **Automated Multi-Channel Ingestion**:
-   - *Peningkatan:* Menambahkan integrasi webhook untuk mencerna tiket langsung dari email masuk (SendGrid / Mailgun inbound parse), WhatsApp Business API, dan Slack webhook channel.
-
-5. **Load Testing & Automated E2E Testing**:
-   - *Peningkatan:* Mengimplementasikan pengujian beban berkala menggunakan **k6** untuk menguji ketahanan server menampung 2.000 req/detik saat lonjakan tiket insiden kritis, serta automasi pengujian browser menyeluruh dengan **Playwright**.
-
----
-
-## 5. 🐍 Python NLP Microservice
- 
-Tersedia microservice berbasis **FastAPI** di direktori `python-nlp/` yang melengkapi pipeline analisis:
-- **Named Entity Recognition (NER) & Regex Extraction**:
-  - `emails`: Ekstraksi otomatis alamat email pengirim dan pihak ketiga.
-  - `phone_numbers`: Ekstraksi nomor telepon internasional & lokal (Indonesia `08...` / `+62...`).
-  - `invoice_or_order_ids`: Ekstraksi nomor pesanan dan invoice (`#INV-2026-09`, `ORD-12345`).
-  - `error_codes`: Ekstraksi kode status sistem (`504`, `ERR_CONNECTION_REFUSED`, `SQLSTATE_23505`).
-  - `monetary_amounts`: Ekstraksi nominal uang (`Rp 150.000`, `$50.00`).
-- **Analisis Sentimen & Urgensi**: Menghitung polaritas sentimen (*frustrated, positive, neutral*) untuk membantu penentuan prioritas tiket.
-- **Opsi Deployment Fleksibel**:
-  - **Vercel Serverless Python**: Berjalan otomatis via `@vercel/python` dengan `VercelPathMiddleware` di `https://goodevadesk-nlp.vercel.app/` (0 biaya, zero maintenance, auto-scale).
-  - **Docker Container**: Tersedia `Dockerfile` mandiri atau via `docker compose up -d nlp`.
-  - **Lokal Uvicorn**: `uvicorn main:app --port 8000 --reload`.
-- **Zero-Downtime Client Resilience**: Dilengkapi `runLocalNlpFallback()` pada frontend sehingga jika microservice cloud sedang cold start atau mengalami gangguan jaringan, UI tetap menampilkan analisis entitas secara instan tanpa pernah blank.
-
-Jalankan test suite Python NLP:
-```bash
-cd python-nlp
-pytest test_nlp.py -v
-```
-
----
-
-## 6. 🧪 Pengujian Otomatis & Verifikasi Kualitas
-
-Sistem dilengkapi test suite unit dan integrasi otomatis yang menjamin keandalan kode:
+Sistem dilengkapi rangkaian pengujian otomatis komprehensif:
 
 ```bash
-# 1. Menjalankan Unit Test Backend NestJS
+# 1. Menjalankan Unit Test Backend NestJS (5 Test Suites / 38 Unit Tests)
 cd backend
-npm test -- src/tickets/tickets.service.spec.ts
+npm test
 
-# 2. Typecheck Backend TypeScript
+# 2. Typecheck TypeScript Backend
 cd backend
 npx tsc --noEmit
 
-# 3. Typecheck Frontend TypeScript
+# 3. Typecheck TypeScript Frontend
 cd frontend
 npx tsc --noEmit
 
-# 4. Production Build Frontend
+# 4. Production Bundle Build Frontend
 cd frontend
 npm run build
 
 # 5. Unit Test Python NLP Microservice
 cd python-nlp
-pytest test_nlp.py
+pytest test_nlp.py -v
 ```
 
-*Seluruh 6 test unit backend, 3 test NLP python, typecheck frontend/backend, serta build Vite terverifikasi lulus 100% tanpa error.*
+*Status: Seluruh 38 pengujian unit backend, kompilasi typecheck TS, build bundel produksi Vite, dan pengujian Python NLP terverifikasi **100% Lulus (PASS)**.*
 
 ---
 
-## 7. 🔑 Data Uji Reviewer (Seeded Tenants)
+## 🔑 Kredensial Tenant Pengujian (Seeded Data)
 
-Setelah proses seed database selesai, tersedia 2 akun tenant terpisah untuk menguji isolasi data:
+Database telah dilengkapi data awal multi-organisasi untuk menguji ketahanan isolasi tenant:
 
-| Tenant | Nama Organisasi | API Key Header (`x-api-key`) | Karakteristik Data |
-| :--- | :--- | :--- | :--- |
-| **Tenant A** | **Acme Corp** | `acme_live_key_12345` | Organisasi aktif dengan 13 tiket lintas kategori (Billing, Technical, General) |
-| **Tenant B** | **TechFlow Inc** | `techflow_live_key_67890` | Organisasi terpisah dengan 1 tiket terisolasi |
+| Nama Organisasi | API Key Header (`x-api-key`) | Karakteristik Data Uji |
+| :--- | :--- | :--- |
+| **Acme Corp** | `acme_live_key_12345` | Organisasi utama dengan 13 tiket lintas kategori (Billing, Technical, General), prioritas, dan riwayat pesan lengkap. |
+| **TechFlow Inc** | `techflow_live_key_67890` | Organisasi terpisah dengan tiket terisolasi untuk membuktikan isolasi multi-tenant. |
 
-### Uji Coba Isolasi Tenant via cURL:
+### Contoh Pengujian Isolasi via cURL:
 ```bash
-# Mengambil tiket Acme Corp
+# Kueri tiket organisasi Acme Corp
 curl -X GET http://localhost:3000/tickets \
   -H "x-api-key: acme_live_key_12345"
 
-# Mengambil tiket TechFlow Inc (hanya menghasilkan data TechFlow)
+# Kueri tiket organisasi TechFlow Inc (hanya mengembalikan data milik TechFlow)
 curl -X GET http://localhost:3000/tickets \
   -H "x-api-key: techflow_live_key_67890"
 ```
 
 ---
 
-## 👨‍💻 Standar Kualitas & Komitmen
+## 📂 Struktur Repositori
 
-Proyek ini dibangun memenuhi standar arsitektur perangkat lunak enterprise:
-- **Clean Architecture & SOLID Principles** (Single Responsibility, pemisahan dependensi)
-- **Multi-Tenant Isolation Strict Guarantee** (Zero Cross-Tenant Leakage)
-- **Non-Blocking LLM Resiliency** (Graceful degradation pada kegagalan eksternal)
-- **Production Containerization Ready** (Docker Compose multi-service orchestration)
+```text
+goodevadesk/
+├── .github/                     # Alur kerja otomatisasi CI/CD
+├── backend/                     # Layanan REST API berbasis NestJS 10
+│   ├── src/
+│   │   ├── analytics/           # Modul agregasi analitik eksekutif & SLA
+│   │   ├── auth/                # API Key Guard & proteksi tenant
+│   │   ├── llm/                 # Adaptive Multi-Provider Engine & RAG SOP
+│   │   ├── prisma/              # Skema database & Prisma ORM service
+│   │   ├── redis/               # Redis Service & strategi hashing SHA-256
+│   │   └── tickets/             # Modul tiket, utilitas murni, & presence
+│   └── test/                    # Suite pengujian integrasi & unit
+├── frontend/                    # Antarmuka web pengguna berbasis React 19 + Vite
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── desk/            # Subkomponen modular antarmuka meja tiket
+│   │   │   ├── ticket-modal/    # 8 subkomponen dekomposisi detail tiket (SRP)
+│   │   │   ├── CommandPalette.tsx # Menu navigasi cepat berbasis tombol (Ctrl+K)
+│   │   │   ├── ExecutiveAnalytics.tsx # Visualisasi metrik & kepatuhan SLA
+│   │   │   ├── KnowledgeShelfView.tsx # Basis pengetahuan SOP & RAG grounding
+│   │   │   └── TicketDesk.tsx   # Meja utama pengelolaan tiket
+│   │   ├── constants.ts         # Pemusatan konstanta, identitas, & delay
+│   │   └── types.ts             # Definisi skema antarmuka tipe TypeScript
+├── python-nlp/                  # Microservice ekstraksi entitas berbasis FastAPI
+│   ├── services/
+│   │   ├── classifier.py        # Logika klasifikasi kategori & urgensi
+│   │   └── extractor.py         # Ekstraksi regex & pembuatan ringkasan
+│   ├── constants.py             # Kamus bobot skor & pola regex
+│   ├── models.py                # Skema data DTO Pydantic
+│   └── main.py                  # Entrypoint kontroler FastAPI ramping
+├── docker-compose.yml           # Orkestrator multi-kontainer Docker
+└── README.md                    # Dokumentasi komprehensif sistem aplikasi
+```
+
+---
+
+## 👨‍💻 Kontributor & Standar Kualitas
+
+Dikembangkan dan dipelihara oleh:
+* **Andrian Maulana** — [GitHub Profile](https://github.com/AndreanMlna) (`andrian maulana <134795751+AndreanMlna@users.noreply.github.com>`)
+
+Dibangun dengan komitmen penuh terhadap:
+- **Zero Cross-Tenant Leakage**: Garansi isolasi tenant multi-organisasi yang mutlak.
+- **Enterprise Resiliency**: Penanganan kegagalan graceful tanpa pernah memutus operasi bisnis inti.
+- **Clean Architecture**: Kode yang bersih, modular, teruji, dan siap untuk tahap produksi komersial.
