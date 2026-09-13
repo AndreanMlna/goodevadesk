@@ -321,3 +321,127 @@ export async function fetchAuditLogs(
 
   return handleResponse<AuditLogItem[]>(res, `Failed to fetch audit logs for ticket ${ticketId}`);
 }
+
+/**
+ * Enterprise Fase 2: Reports agent presence to detect real-time editing collisions.
+ */
+export async function recordTicketPresence(
+  apiKey: string,
+  ticketId: string,
+  agentName: string,
+): Promise<{ collision_detected: boolean; active_agents: string[] }> {
+  const res = await fetch(`${API_BASE_URL}/tickets/${ticketId}/presence`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify({ agent_name: agentName }),
+  });
+
+  return handleResponse<{ collision_detected: boolean; active_agents: string[] }>(
+    res,
+    'Failed to record agent presence',
+  );
+}
+
+/**
+ * Enterprise Fase 2: Fetches active webhook configuration for tenant.
+ */
+export async function fetchWebhookConfig(apiKey: string): Promise<{ url: string; platform: string; enabled: boolean }> {
+  const res = await fetch(`${API_BASE_URL}/webhooks/config`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  return handleResponse<{ url: string; platform: string; enabled: boolean }>(res, 'Failed to fetch webhook config');
+}
+
+/**
+ * Enterprise Fase 2: Updates webhook destination (Slack / Discord).
+ */
+export async function updateWebhookConfig(
+  apiKey: string,
+  config: { url: string; platform: string; enabled: boolean; events?: string[] },
+): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/webhooks/config`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify(config),
+  });
+
+  return handleResponse<any>(res, 'Failed to update webhook config');
+}
+
+/**
+ * Enterprise Fase 2: Tests outbound webhook connectivity.
+ */
+export async function testWebhookPing(
+  apiKey: string,
+  payload: { url: string; platform: string },
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE_URL}/webhooks/test`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse<{ success: boolean; message: string }>(res, 'Failed to test webhook');
+}
+
+/**
+ * Enterprise Fase 2: Fetches active SOP documents for RAG grounding.
+ */
+export async function fetchSopDocuments(apiKey: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE_URL}/knowledge-base`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  return handleResponse<any[]>(res, 'Failed to fetch SOP documents');
+}
+
+/**
+ * Enterprise Fase 2: Ingests a new SOP standard operating procedure document.
+ */
+export async function ingestSopDocument(
+  apiKey: string,
+  doc: { title: string; category: string; content: string },
+): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/knowledge-base`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify(doc),
+  });
+
+  return handleResponse<any>(res, 'Failed to ingest SOP document');
+}
+
+/**
+ * Enterprise Fase 2: Triggers immediate SLA auto-escalation evaluation.
+ */
+export async function triggerSlaEscalationCheck(apiKey: string): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/escalation/check`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  return handleResponse<any>(res, 'Failed to trigger SLA check');
+}
+

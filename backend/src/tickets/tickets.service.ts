@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, Optional } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisCacheService } from '../redis/redis.service';
 import { LlmService } from '../llm/llm.service';
+import { WebhooksService } from '../webhooks/webhooks.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { QueryTicketsDto } from './dto/query-tickets.dto';
@@ -45,11 +46,13 @@ export interface CreateTicketResponse {
 @Injectable()
 export class TicketsService {
   private readonly logger = new Logger(TicketsService.name);
+  private readonly activePresences = new Map<string, Array<{ agentName: string; lastSeen: number }>>();
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly redisCacheService: RedisCacheService,
     private readonly llmService: LlmService,
+    @Optional() private readonly webhooksService?: WebhooksService,
   ) {}
 
   /**
@@ -170,6 +173,23 @@ export class TicketsService {
       }
     } catch (auditErr: any) {
       this.logger.warn(`Non-fatal: initial thread/audit creation: ${auditErr?.message}`);
+    }
+
+    // Outbound Webhook: Alert team if ticket is critical or highly urgent
+    try {
+      if ((priority === 'critical' || urgencyScore >= 0.8) && this.webhooksService) {
+        this.webhooksService
+          .dispatchAlert(organizationId, 'critical_ticket', {
+            ...ticket,
+            priority,
+            category,
+            sla_deadline: slaDeadline,
+            urgency_score: urgencyScore,
+          })
+          .catch((wErr) => this.logger.warn(`Non-blocking: Webhook alert failed: ${wErr?.message}`));
+      }
+    } catch (whErr: any) {
+      this.logger.warn(`Non-blocking webhook alert trigger: ${whErr?.message}`);
     }
 
     return {
@@ -532,5 +552,33 @@ export class TicketsService {
       orderBy: { created_at: 'desc' },
       take: 100,
     });
+  }
+
+  /**
+   * Enterprise: Real-time agent collision detection & presence tracking.
+   * Tracks agents active on a ticket in the last 25 seconds to prevent duplicate efforts.
+   */
+  recordPresence(organizationId: string, ticketId: string, agentName: string): string[] {
+    const key = `${organizationId}:${ticketId}`;
+    const now = Date.now();
+    let presences = this.activePresences.get(key) || [];
+
+    // Filter out presences inactive for more than 25 seconds
+    presences = presences.filter((p) => now - p.lastSeen < 25000);
+
+    const cleanName = agentName?.trim() || 'Support Agent';
+    const existing = presences.find((p) => p.agentName.toLowerCase() === cleanName.toLowerCase());
+    if (existing) {
+      existing.lastSeen = now;
+    } else {
+      presences.push({ agentName: cleanName, lastSeen: now });
+    }
+
+    this.activePresences.set(key, presences);
+
+    // Return other active agents (excluding calling agent)
+    return presences
+      .filter((p) => p.agentName.toLowerCase() !== cleanName.toLowerCase())
+      .map((p) => p.agentName);
   }
 }

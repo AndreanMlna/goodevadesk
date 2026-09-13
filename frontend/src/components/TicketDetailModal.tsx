@@ -19,6 +19,7 @@ import {
   User,
   History,
   CornerDownRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { Ticket, TicketStatus, NlpAnalysisResult, TicketMessage, AuditLogItem } from '../types';
 import {
@@ -26,7 +27,18 @@ import {
   PRIORITY_STYLES,
   CATEGORY_STYLES,
 } from '../constants';
-import { fetchTicketById, addTicketMessage, assignTicket, fetchAuditLogs } from '../api';
+import {
+  fetchTicketById,
+  addTicketMessage,
+  assignTicket,
+  fetchAuditLogs,
+  recordTicketPresence,
+} from '../api';
+import {
+  trackAiDraftApproved,
+  trackInternalWhisperAdded,
+  trackCollisionDetected,
+} from '../lib/telemetry';
 
 const TEAM_MEMBERS = [
   'Unassigned',
@@ -65,6 +77,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [assignedTo, setAssignedTo] = useState<string>('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const [collisionAgents, setCollisionAgents] = useState<string[]>([]);
 
   // Reply Composer State
   const [composerContent, setComposerContent] = useState('');
@@ -135,6 +148,40 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     }
   }, [ticket?.id, apiKey]);
 
+  // Enterprise Fase 2: Real-time agent presence polling for collision detection
+  useEffect(() => {
+    if (!ticket || !apiKey) return;
+    let isMounted = true;
+
+    const sendHeartbeat = async () => {
+      try {
+        const presenceRes = await recordTicketPresence(
+          apiKey,
+          ticket.id,
+          assignedTo || 'Support Specialist',
+        );
+        if (isMounted) {
+          if (presenceRes.collision_detected && presenceRes.active_agents.length > 0) {
+            setCollisionAgents(presenceRes.active_agents);
+            trackCollisionDetected(ticket.id, presenceRes.active_agents);
+          } else {
+            setCollisionAgents([]);
+          }
+        }
+      } catch (pErr) {
+        // Non-fatal presence polling
+      }
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [ticket?.id, apiKey, assignedTo]);
+
   // Scroll to bottom of conversation thread when new message arrives
   useEffect(() => {
     if (activeTab === 'conversation') {
@@ -159,6 +206,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     setIsApproving(true);
     try {
       await onApproveReply();
+      trackAiDraftApproved(ticket.id);
       setApprovalSuccess(true);
       setTimeout(() => setApprovalSuccess(false), 3000);
       if (apiKey) {
@@ -204,6 +252,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
       setMessages((prev) => [...prev, newMsg]);
       setComposerContent('');
+
+      if (composerType === 'internal_note') {
+        trackInternalWhisperAdded(ticket.id);
+      }
 
       // Refresh audit logs
       const freshLogs = await fetchAuditLogs(apiKey, ticket.id);
@@ -274,6 +326,21 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Enterprise Collision Warning Banner */}
+        {collisionAgents.length > 0 && (
+          <div className="mx-6 mt-3 p-3 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 flex items-center justify-between gap-3 text-xs text-amber-200 animate-pulse">
+            <div className="flex items-center gap-2 font-medium">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                <strong className="text-amber-300">Collision Alert:</strong> {collisionAgents.join(', ')} is also viewing/editing this ticket. Coordinate to prevent conflicting responses.
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-bold uppercase bg-amber-500/25 px-2.5 py-0.5 rounded text-amber-300 border border-amber-500/40 shrink-0">
+              Live Presence
+            </span>
+          </div>
+        )}
 
         {/* Header Subject, Assignee & SLA */}
         <div className="px-6 py-4 bg-[#090e1a] border-b border-slate-800/80 space-y-3">

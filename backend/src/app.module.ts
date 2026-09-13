@@ -8,6 +8,8 @@ import { TicketsModule } from './tickets/tickets.module';
 import { HealthModule } from './health/health.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
+import { EscalationModule } from './escalation/escalation.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { AnalyticsModule } from './analytics/analytics.module';
     TicketsModule,
     HealthModule,
     AnalyticsModule,
+    WebhooksModule,
+    EscalationModule,
   ],
 })
 export class AppModule {}

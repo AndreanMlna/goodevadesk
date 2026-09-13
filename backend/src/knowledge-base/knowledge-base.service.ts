@@ -10,7 +10,7 @@ export interface RetrievedSop {
   relevanceScore: number;
 }
 
-interface SopDocument {
+export interface SopDocument {
   docId: string;
   category: 'billing' | 'technical' | 'general';
   title: string;
@@ -176,6 +176,36 @@ export class KnowledgeBaseService implements OnModuleInit {
       category: d.category,
       title: d.title,
       summary: d.content.slice(0, 200) + '...',
+      content: d.content,
+      keywords: d.keywords,
     }));
   }
+
+  /**
+   * Enterprise: Dynamically ingests a new SOP standard operating procedure document.
+   * Extracts keywords automatically and indexes the policy for immediate RAG grounding.
+   */
+  addDocument(doc: {
+    title: string;
+    category: 'billing' | 'technical' | 'general';
+    content: string;
+    docId?: string;
+  }): SopDocument {
+    const docId = doc.docId || `SOP-CUSTOM-${Date.now().toString().slice(-4)}`;
+    const newDoc: SopDocument = {
+      docId,
+      category: doc.category,
+      title: doc.title,
+      content: doc.content,
+      keywords: this.extractKeywords(doc.content + ' ' + doc.title),
+    };
+
+    // Prepend to documents so freshly ingested SOPs take priority
+    this.documents.unshift(newDoc);
+    this.logger.log(
+      `Ingested new SOP document [${docId}]: "${doc.title}" (${newDoc.keywords.length} keywords indexed)`,
+    );
+    return newDoc;
+  }
 }
+

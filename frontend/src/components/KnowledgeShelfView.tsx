@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen,
   Sparkles,
@@ -8,11 +8,38 @@ import {
   Info,
   RotateCw,
   Palette,
+  Plus,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  X,
+  Database,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { CompleteShelfLandingPage } from './CompleteShelfLandingPage';
+import { fetchSopDocuments, ingestSopDocument } from '../api';
+import { trackTelemetryEvent } from '../lib/telemetry';
 
-export const KnowledgeShelfView: React.FC = () => {
+interface KnowledgeShelfViewProps {
+  apiKey?: string;
+}
+
+export const KnowledgeShelfView: React.FC<KnowledgeShelfViewProps> = ({ apiKey }) => {
   const [accentColor, setAccentColor] = useState('#c87046');
+
+  // Dynamic SOP Registry State
+  const [sopDocs, setSopDocs] = useState<any[]>([]);
+  const [loadingSops, setLoadingSops] = useState(false);
+  const [showRegistry, setShowRegistry] = useState(false);
+
+  // Ingestion Modal State
+  const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
+  const [ingestTitle, setIngestTitle] = useState('');
+  const [ingestCategory, setIngestCategory] = useState<'billing' | 'technical' | 'general'>('technical');
+  const [ingestContent, setIngestContent] = useState('');
+  const [isIngesting, setIsIngesting] = useState(false);
+  const [ingestFeedback, setIngestFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const sopHighlights = [
     { roman: 'I', title: 'RAG SOPs', tag: 'Grounding' },
@@ -23,6 +50,68 @@ export const KnowledgeShelfView: React.FC = () => {
     { roman: 'VI', title: 'HITL & RLHF', tag: 'Supervision' },
     { roman: 'VII', title: 'Python NLP', tag: 'Linguistics' },
   ];
+
+  const loadSops = useCallback(async () => {
+    if (!apiKey) return;
+    setLoadingSops(true);
+    try {
+      const docs = await fetchSopDocuments(apiKey);
+      if (Array.isArray(docs)) {
+        setSopDocs(docs);
+      }
+    } catch (err) {
+      console.warn('[Knowledge Shelf] Could not load active SOP documents:', err);
+    } finally {
+      setLoadingSops(false);
+    }
+  }, [apiKey]);
+
+  useEffect(() => {
+    loadSops();
+  }, [loadSops]);
+
+  const handleIngestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ingestTitle.trim() || !ingestContent.trim()) return;
+
+    setIsIngesting(true);
+    setIngestFeedback(null);
+
+    try {
+      const result = await ingestSopDocument(apiKey || '', {
+        title: ingestTitle.trim(),
+        category: ingestCategory,
+        content: ingestContent.trim(),
+      });
+
+      trackTelemetryEvent('sop_document_ingested', {
+        category: ingestCategory,
+        title: ingestTitle.trim(),
+        tenant_id: apiKey ? 'authenticated' : 'anonymous',
+      });
+
+      setIngestFeedback({
+        type: 'success',
+        message: result?.message || `SOP "${ingestTitle}" successfully indexed into vector grounding memory!`,
+      });
+
+      setIngestTitle('');
+      setIngestContent('');
+      await loadSops();
+
+      setTimeout(() => {
+        setIsIngestModalOpen(false);
+        setIngestFeedback(null);
+      }, 1500);
+    } catch (err: any) {
+      setIngestFeedback({
+        type: 'error',
+        message: err.message || 'Failed to ingest SOP document into knowledge shelf.',
+      });
+    } finally {
+      setIsIngesting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -50,13 +139,21 @@ export const KnowledgeShelfView: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsIngestModalOpen(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-4 py-2 rounded-xl shadow-lg shadow-purple-900/30 text-xs font-bold transition transform active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Ingest New SOP</span>
+            </button>
             <div className="flex items-center gap-2 bg-[#090d16]/80 px-3.5 py-2 rounded-xl border border-slate-800 text-xs text-slate-300">
               <Layers className="w-4 h-4 text-purple-400" />
-              <span className="font-semibold text-white">7</span> Working Volumes
+              <span className="font-semibold text-white">{sopDocs.length || 7}</span> Grounded SOPs
             </div>
             <div className="flex items-center gap-2 bg-[#090d16]/80 px-3.5 py-2 rounded-xl border border-slate-800 text-xs text-slate-300">
               <Cpu className="w-4 h-4 text-emerald-400" />
-              <span>WebGl / GPU 60 FPS</span>
+              <span>WebGL / GPU 60 FPS</span>
             </div>
             <div className="flex items-center gap-2 bg-[#090d16]/80 px-3.5 py-2 rounded-xl border border-slate-800 text-xs text-slate-300">
               <ShieldCheck className="w-4 h-4 text-cyan-400" />
@@ -70,7 +167,7 @@ export const KnowledgeShelfView: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-slate-400 font-medium mr-1 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              7 Operational Volumes:
+              Core Volumes:
             </span>
             {sopHighlights.map((sop) => (
               <div
@@ -138,9 +235,181 @@ export const KnowledgeShelfView: React.FC = () => {
             <Info className="w-4 h-4 text-purple-400" />
             <span>Authored Three.js r165 environment with real-time dynamic lighting, shaders, and physics-based volume pull interaction.</span>
           </div>
-          <span className="font-mono text-[11px] text-slate-400">Canonical SHA-256: 606f200fed86</span>
+          <button
+            type="button"
+            onClick={() => setShowRegistry((prev) => !prev)}
+            className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition text-xs font-semibold"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>{showRegistry ? 'Hide SOP Index' : 'Inspect RAG SOP Index'}</span>
+            {showRegistry ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
+
+      {/* Expandable Active SOP Registry Table */}
+      {showRegistry && (
+        <div className="bg-[#111827] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database className="w-4 h-4 text-purple-400" />
+              <h3 className="text-sm font-bold text-white">Active RAG Grounding SOP Registry</h3>
+              <span className="text-xs text-slate-400">({sopDocs.length} indexed documents)</span>
+            </div>
+            <button
+              type="button"
+              onClick={loadSops}
+              disabled={loadingSops}
+              className="text-xs text-purple-400 hover:text-purple-300 transition flex items-center gap-1"
+            >
+              <RotateCw className={`w-3 h-3 ${loadingSops ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {sopDocs.map((doc, idx) => (
+              <div
+                key={doc.id || idx}
+                className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-purple-500/30 transition space-y-2"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-200 line-clamp-1">{doc.title}</span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${
+                      doc.category === 'billing'
+                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                        : doc.category === 'technical'
+                        ? 'bg-blue-500/10 text-blue-300 border border-blue-500/20'
+                        : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                    }`}
+                  >
+                    {doc.category}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                  {doc.content}
+                </p>
+                {doc.keywords && doc.keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {doc.keywords.slice(0, 4).map((kw: string, i: number) => (
+                      <span key={i} className="text-[9px] font-mono bg-slate-800 text-purple-300 px-1.5 py-0.5 rounded">
+                        #{kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ingest SOP Document Modal */}
+      {isIngestModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#111827] border border-purple-500/30 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Ingest New SOP Policy Document</h3>
+                  <p className="text-xs text-slate-400">Expand the RAG anti-hallucination knowledge base</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsIngestModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {ingestFeedback && (
+              <div
+                className={`p-3 rounded-xl flex items-center gap-2 text-xs ${
+                  ingestFeedback.type === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                    : 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
+                }`}
+              >
+                {ingestFeedback.type === 'success' ? (
+                  <CheckCircle className="w-4 h-4 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                )}
+                <span>{ingestFeedback.message}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleIngestSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  SOP Document Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Enterprise Refund & Chargeback Policy"
+                  value={ingestTitle}
+                  onChange={(e) => setIngestTitle(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Category Classification
+                </label>
+                <select
+                  value={ingestCategory}
+                  onChange={(e) => setIngestCategory(e.target.value as any)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                >
+                  <option value="technical">Technical Support / System Incident</option>
+                  <option value="billing">Billing, Invoice, and Subscriptions</option>
+                  <option value="general">General Corporate Policy & Compliance</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Policy Content / Operating Instructions (Markdown)
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  placeholder="Enter the authoritative policy text. Keywords will be automatically extracted and indexed for anti-hallucination RAG grounding..."
+                  value={ingestContent}
+                  onChange={(e) => setIngestContent(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 leading-relaxed font-sans"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsIngestModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isIngesting}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isIngesting ? <RotateCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  <span>{isIngesting ? 'Indexing...' : 'Ingest Document'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -326,7 +326,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'shelf' && <KnowledgeShelfView />}
+          {activeTab === 'shelf' && <KnowledgeShelfView apiKey={apiKey} />}
         </main>
       </div>
 

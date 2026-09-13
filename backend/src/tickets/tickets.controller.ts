@@ -183,4 +183,29 @@ export class TicketsController {
   ) {
     return this.ticketsService.getAuditLogs(org.id, id);
   }
+
+  @Post(':id/presence')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Enterprise: Report agent presence for real-time collision detection',
+    description: 'Heartbeats the presence of an active agent viewing or editing a ticket to prevent collision.',
+  })
+  @ApiParam({ name: 'id', description: 'Ticket UUID identifier' })
+  @ApiResponse({ status: 200, description: 'Presence registered. Returns active collision list.' })
+  async recordPresence(
+    @CurrentOrg() org: Organization,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() body: { agent_name?: string },
+  ) {
+    const otherAgents = this.ticketsService.recordPresence(
+      org.id,
+      id,
+      body?.agent_name || 'Support Agent',
+    );
+    return {
+      collision_detected: otherAgents.length > 0,
+      active_agents: otherAgents,
+    };
+  }
 }
+
