@@ -205,7 +205,14 @@ html.light .glass-panel,
 html.light .glass-panel-interactive,
 html.light .bg-\[\#111827\],
 html.light .bg-\[\#111827\]\/80,
-html.light .bg-\[\#0f172a\] {
+html.light .bg-\[\#0f172a\],
+html.light .bg-\[\#080d18\],
+html.light .bg-\[\#0b1324\],
+html.light .bg-\[\#0d1424\],
+html.light .bg-\[\#0b1220\],
+html.light .bg-\[\#080d1a\],
+html.light .bg-\[\#090f20\],
+html.light .bg-\[\#0b1120\] {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04) !important;
@@ -224,16 +231,24 @@ html.light .blur-3xl {
   opacity: 0.15 !important;
 }
 
-/* Nested Boxes (Quotes, Code, Message previews, Card headers) */
+/* Nested Boxes (Quotes, Code, Message previews, Card headers, Status bars) */
 html.light .bg-\[\#090d16\]\/80,
 html.light .bg-\[\#090d16\]\/70,
+html.light .bg-\[\#090d16\]\/60,
+html.light .bg-\[\#090d16\],
+html.light .bg-\[\#080d18\]\/60,
 html.light .bg-\[\#0d121f\],
-html.light .bg-\[\#0c1222\] {
+html.light .bg-\[\#0c1222\],
+html.light .bg-\[\#090d18\],
+html.light .bg-\[\#090e1a\],
+html.light .bg-black\/40,
+html.light .bg-black\/30,
+html.light .bg-black\/20 {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
 
-/* Gradient Card backgrounds neutralized in Light Mode */
+/* Gradient Card backgrounds neutralized in Light Mode to luminous soft tones */
 html.light .from-\[\#111827\],
 html.light .to-\[\#151c2e\],
 html.light .from-slate-900\/60,
@@ -242,6 +257,14 @@ html.light .to-slate-900\/80 {
   --tw-gradient-from: #ffffff !important;
   --tw-gradient-to: #f8fafc !important;
   --tw-gradient-stops: #ffffff, #f8fafc !important;
+}
+
+html.light .from-cyan-950\/20,
+html.light .via-slate-900\/60,
+html.light .to-purple-950\/20 {
+  --tw-gradient-from: #eef2ff !important;
+  --tw-gradient-to: #faf5ff !important;
+  --tw-gradient-stops: #eef2ff, #ffffff, #faf5ff !important;
 }
 
 /* Borders */
@@ -311,6 +334,18 @@ html.light .text-slate-400 {
 html.light .text-slate-500 {
   color: #64748b !important;
 }
+
+/* Light Theme vivid text enhancements for dark-variant text classes */
+html.light .text-rose-200 { color: #be123c !important; }
+html.light .text-amber-100,
+html.light .text-amber-200 { color: #92400e !important; }
+html.light .text-blue-200 { color: #1d4ed8 !important; }
+html.light .text-cyan-200 { color: #0e7490 !important; }
+html.light .text-purple-200 { color: #6d28d9 !important; }
+html.light .text-indigo-50,
+html.light .text-indigo-100,
+html.light .text-indigo-200 { color: #3730a3 !important; }
+html.light .text-emerald-200 { color: #047857 !important; }
 
 /* Badges High-Contrast Readability (Rich semantic pastel tones with deep vivid text) */
 /* Rose / Critical */

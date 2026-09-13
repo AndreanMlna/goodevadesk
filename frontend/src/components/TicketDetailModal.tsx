@@ -383,12 +383,12 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#0f172a] border border-slate-700/80 w-full max-w-5xl rounded-3xl shadow-2xl flex flex-col h-[90vh] overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm dark:bg-black/80 dark:backdrop-blur-md animate-fade-in">
+      <div className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/80 w-full max-w-5xl rounded-3xl shadow-2xl flex flex-col h-[90vh] overflow-hidden relative">
         {/* Modal Top Metadata Bar & Controls */}
-        <div className="px-5 py-3 border-b border-slate-800 bg-[#0c1222] flex items-center justify-between gap-3 shrink-0">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0c1222] flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span className="text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60 shrink-0">
+            <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700/60 shrink-0">
               ID: {ticket.id.slice(0, 13)}...
             </span>
             {ticket.priority && (
@@ -403,7 +403,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               </span>
             )}
             {ticket.urgency_score !== undefined && ticket.urgency_score !== null && (
-              <span className="text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-md shrink-0">
+              <span className="text-[10px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-md shrink-0">
                 Urgency: {Math.round(ticket.urgency_score * 100)}%
               </span>
             )}
@@ -411,14 +411,14 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               <span
                 className={`text-[10px] font-medium px-2 py-0.5 rounded-md border flex items-center gap-1 font-mono shrink-0 ${
                   ticket.status === 'closed'
-                    ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
                     : deadlineInfo?.isBreached
-                    ? 'bg-rose-950/40 border-rose-500/30 text-rose-400'
-                    : 'bg-slate-800/80 border-slate-700 text-slate-300'
+                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400'
+                    : 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
                 title={`SLA Resolution Target: ${new Date(ticket.sla_deadline).toLocaleString()}`}
               >
-                <Clock className="w-3 h-3 text-purple-400 shrink-0" />
+                <Clock className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
                 <span>{ticket.status === 'closed' ? 'SLA Resolved' : deadlineInfo?.isBreached ? 'SLA Breached' : deadlineInfo?.text}</span>
               </span>
             )}
@@ -426,17 +426,17 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Compact Assignee Selector */}
-            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 rounded-lg">
-              <User className="w-3 h-3 text-indigo-400 shrink-0" />
-              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">Assignee:</span>
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 px-2.5 py-1 rounded-lg shadow-xs">
+              <User className="w-3 h-3 text-indigo-500 dark:text-indigo-400 shrink-0" />
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">Assignee:</span>
               <select
                 value={assignedTo || 'Unassigned'}
                 onChange={handleAssigneeChange}
                 disabled={isAssigning}
-                className="bg-transparent text-[11px] text-indigo-200 font-semibold focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[180px] truncate"
+                className="bg-transparent text-[11px] text-slate-800 dark:text-indigo-200 font-semibold focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[180px] truncate"
               >
                 {TEAM_MEMBERS.map((member) => (
-                  <option key={member} value={member} className="bg-slate-900 text-slate-200">
+                  <option key={member} value={member} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
                     {member}
                   </option>
                 ))}
@@ -445,7 +445,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 transition cursor-pointer"
               title="Close modal"
             >
               <X className="w-4 h-4" />
@@ -469,61 +469,65 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         )}
 
         {/* Header Subject & Segmented Navigation Tabs */}
-        <div className="px-5 py-3 bg-[#090e1a] border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+        <div className="px-5 py-3 bg-white dark:bg-[#090e1a] border-b border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
           <div className="min-w-0 flex-1">
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug truncate" title={ticket.subject}>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-snug truncate" title={ticket.subject}>
               {ticket.subject}
             </h2>
-            <div className="text-[11px] text-slate-400 flex items-center gap-2 truncate mt-0.5">
-              <span>From: <strong className="text-slate-300 font-mono">{ticket.customer_email}</strong></span>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 truncate mt-0.5">
+              <span>From: <strong className="text-slate-700 dark:text-slate-300 font-mono">{ticket.customer_email}</strong></span>
               <span>•</span>
               <span>{new Date(ticket.created_at).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Compact Segmented Navigation Tabs */}
-          <div className="flex items-center gap-1.5 shrink-0 bg-slate-900/70 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-1.5 shrink-0 bg-slate-100/90 dark:bg-slate-900/70 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
             <button
               onClick={() => setActiveTab('conversation')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'conversation'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Conversation</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 font-mono">
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                activeTab === 'conversation' ? 'bg-white/20 text-white' : 'bg-slate-200/80 dark:bg-black/30 text-slate-700 dark:text-slate-300'
+              }`}>
                 {messages.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('ai_insights')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'ai_insights'
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+              <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'ai_insights' ? 'text-purple-200' : 'text-purple-500 dark:text-purple-300'}`} />
               <span>AI Intel</span>
               {ticket.grounding_doc && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
               )}
             </button>
 
             <button
               onClick={() => setActiveTab('audit_trail')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'audit_trail'
-                  ? 'bg-teal-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'bg-teal-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Audit Trail</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 font-mono">
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                activeTab === 'audit_trail' ? 'bg-white/20 text-white' : 'bg-slate-200/80 dark:bg-black/30 text-slate-700 dark:text-slate-300'
+              }`}>
                 {auditLogs.length}
               </span>
             </button>
@@ -579,10 +583,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
                     {/* Message Bubble */}
                     <div
-                      className={`rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed shadow-sm ${
+                      className={`rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed shadow-xs ${
                         isCustomer
-                          ? 'bg-[#0b1324] border border-slate-700/70 text-slate-100 rounded-tl-sm'
-                          : 'bg-indigo-950/40 border border-indigo-500/40 text-indigo-50 rounded-tr-sm'
+                          ? 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm dark:bg-[#0b1324] dark:border-slate-700/70 dark:text-slate-100'
+                          : 'bg-indigo-50 border border-indigo-200/80 text-indigo-950 rounded-tr-sm dark:bg-indigo-950/40 dark:border-indigo-500/40 dark:text-indigo-50'
                       }`}
                     >
                       <p className="whitespace-pre-wrap font-sans">{msg.content}</p>
@@ -594,16 +598,16 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             </div>
 
             {/* Streamlined Thread Composer */}
-            <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-[#090d18] border-t border-slate-800 space-y-2.5 shrink-0">
+            <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white dark:bg-[#090d18] border-t border-slate-200 dark:border-slate-800 space-y-2.5 shrink-0">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-lg border border-slate-800">
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/90 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setComposerType('agent')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
                       composerType === 'agent'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
                     <CornerDownRight className="w-3 h-3" />
@@ -612,13 +616,13 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setComposerType('internal_note')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
                       composerType === 'internal_note'
-                        ? 'bg-amber-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
-                    <Lock className="w-3 h-3 text-amber-300" />
+                    <Lock className={`w-3 h-3 ${composerType === 'internal_note' ? 'text-white' : 'text-amber-600 dark:text-amber-300'}`} />
                     <span>Internal Whisper</span>
                   </button>
                 </div>
@@ -628,21 +632,21 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     type="button"
                     onClick={handleStartStream}
                     disabled={isStreaming}
-                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-500/40 text-cyan-200 hover:from-cyan-600/50 hover:to-blue-600/50 transition font-semibold disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-cyan-800 dark:bg-gradient-to-r dark:from-cyan-600/30 dark:to-blue-600/30 dark:border-cyan-500/40 dark:text-cyan-200 dark:hover:from-cyan-600/50 dark:hover:to-blue-600/50 transition font-semibold disabled:opacity-50 cursor-pointer shadow-xs"
                     title="Stream real-time AI reply draft with PII protection"
                   >
-                    <Zap className={`w-3 h-3 text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
+                    <Zap className={`w-3 h-3 text-cyan-600 dark:text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
                     <span>{isStreaming ? 'Streaming...' : 'Stream AI Copilot'}</span>
                   </button>
                   <span className="text-[10px] text-slate-500 hidden md:inline-flex items-center gap-1">
                     {composerType === 'internal_note' ? (
                       <>
-                        <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                        <Lock className="w-2.5 h-2.5 text-amber-500 dark:text-amber-400 shrink-0" />
                         <span>Staff only</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                        <Send className="w-2.5 h-2.5 text-blue-500 dark:text-blue-400 shrink-0" />
                         <span>Sends to email</span>
                       </>
                     )}
@@ -652,18 +656,18 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
               {/* Compact Copilot Streaming Preview Banner */}
               {(isStreaming || (streamedText && composerContent !== streamedText)) && (
-                <div className="p-2 rounded-xl border border-cyan-500/30 bg-cyan-950/20 text-xs space-y-1 animate-fadeIn">
+                <div className="p-2.5 rounded-xl border border-cyan-200 bg-cyan-50/70 dark:border-cyan-500/30 dark:bg-cyan-950/20 text-xs space-y-1 animate-fadeIn">
                   <div className="flex items-center justify-between text-[11px]">
-                    <div className="flex items-center gap-2 text-cyan-300 font-semibold">
-                      <Zap className={`w-3 h-3 text-cyan-400 ${isStreaming ? 'animate-spin' : ''}`} />
+                    <div className="flex items-center gap-2 text-cyan-800 dark:text-cyan-300 font-semibold">
+                      <Zap className={`w-3 h-3 text-cyan-600 dark:text-cyan-400 ${isStreaming ? 'animate-spin' : ''}`} />
                       <span>{isStreaming ? 'AI Streaming (SSE)...' : 'AI Copilot Draft'}</span>
                       {streamMeta?.cached && (
-                        <span className="px-1.5 py-0.2 rounded bg-cyan-500/20 text-[9px] text-cyan-300 border border-cyan-500/40">
+                        <span className="px-1.5 py-0.2 rounded bg-cyan-100 text-[9px] text-cyan-800 border border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/40">
                           Cache Hit
                         </span>
                       )}
                       {streamMeta?.piiMasked && (
-                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-[9px] text-amber-300 border border-amber-500/40">
+                        <span className="px-1.5 py-0.2 rounded bg-amber-100 text-[9px] text-amber-800 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40">
                           PII Masked
                         </span>
                       )}
@@ -673,7 +677,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                         <button
                           type="button"
                           onClick={handleStopStream}
-                          className="px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 text-[10px] border border-rose-500/30 cursor-pointer"
+                          className="px-2 py-0.5 rounded bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-500/20 dark:hover:bg-rose-500/40 dark:text-rose-300 text-[10px] border border-rose-200 dark:border-rose-500/30 cursor-pointer"
                         >
                           Stop
                         </button>
@@ -681,16 +685,16 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                         <button
                           type="button"
                           onClick={handleInsertStreamToComposer}
-                          className="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-semibold cursor-pointer"
+                          className="px-2.5 py-0.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-semibold cursor-pointer shadow-xs"
                         >
                           Insert into Composer
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className="text-slate-300 font-mono text-[11px] max-h-14 overflow-y-auto leading-relaxed">
+                  <p className="text-slate-800 dark:text-slate-300 font-mono text-[11px] max-h-14 overflow-y-auto leading-relaxed">
                     {streamedText}
-                    {isStreaming && <span className="inline-block w-1 h-3 bg-cyan-400 animate-pulse ml-0.5 align-middle" />}
+                    {isStreaming && <span className="inline-block w-1 h-3 bg-cyan-500 dark:bg-cyan-400 animate-pulse ml-0.5 align-middle" />}
                   </p>
                 </div>
               )}
@@ -711,10 +715,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                       : 'Type a multi-turn reply to the customer (Press Ctrl+Enter to send)...'
                   }
                   rows={2}
-                  className={`w-full bg-[#0d1424] border rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none transition resize-none ${
+                  className={`w-full bg-slate-50 border rounded-xl p-2.5 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none transition resize-none dark:bg-[#0d1424] dark:text-slate-100 dark:placeholder-slate-500 ${
                     composerType === 'internal_note'
-                      ? 'border-amber-500/30 focus:border-amber-500'
-                      : 'border-indigo-500/30 focus:border-indigo-500'
+                      ? 'border-amber-200 focus:border-amber-500 dark:border-amber-500/30'
+                      : 'border-slate-200 focus:border-indigo-500 dark:border-indigo-500/30'
                   }`}
                 />
 
@@ -745,21 +749,21 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         {activeTab === 'ai_insights' && (
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Enterprise Fase 3: Unified Real-Time AI Copilot & RAG Workspace */}
-            <div className="p-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/20 via-slate-900/60 to-purple-950/20 space-y-4 relative overflow-hidden shadow-xl">
+            <div className="p-5 rounded-2xl border border-indigo-100/90 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/60 shadow-md shadow-indigo-100/30 dark:border-cyan-500/30 dark:bg-gradient-to-br dark:from-cyan-950/20 dark:via-slate-900/60 dark:to-purple-950/20 space-y-4 relative overflow-hidden">
               {/* Header Bar: Title + Badges + Quick Actions */}
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 text-cyan-300 text-xs font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-2.5 text-indigo-700 dark:text-cyan-300 text-xs font-bold uppercase tracking-wider">
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white shadow-md">
                     <Zap className={`w-4 h-4 ${isStreaming ? 'animate-bounce text-yellow-300' : ''}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-100 font-extrabold text-sm tracking-normal capitalize">Enterprise AI Copilot</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase font-mono tracking-wider">
+                      <span className="text-slate-900 dark:text-slate-100 font-extrabold text-sm tracking-normal capitalize">Enterprise AI Copilot</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase font-mono tracking-wider dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/40">
                         RAG Grounded
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-400 font-normal normal-case">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-normal normal-case">
                       Real-time response synthesizer with PII sanitization & semantic caching
                     </div>
                   </div>
@@ -770,7 +774,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   {isStreaming ? (
                     <button
                       onClick={handleStopStream}
-                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 rounded-xl border border-rose-500/30 transition shadow"
+                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 transition shadow-xs dark:bg-rose-600/30 dark:hover:bg-rose-600/50 dark:text-rose-200 dark:border-rose-500/30 cursor-pointer"
                     >
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                       <span>Stop Stream</span>
@@ -778,7 +782,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   ) : (
                     <button
                       onClick={handleStartStream}
-                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-md transition"
+                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-md transition cursor-pointer"
                       title="Re-generate response token-by-token with real-time vector RAG"
                     >
                       <Zap className="w-3.5 h-3.5 text-cyan-200" />
@@ -790,10 +794,10 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   {activeDraft && (
                     <button
                       onClick={() => handleCopyReply(activeDraft)}
-                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs flex items-center gap-1.5 border border-slate-700 transition"
+                      className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs flex items-center gap-1.5 border border-slate-200 shadow-xs transition cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700"
                       title="Copy current AI reply to clipboard"
                     >
-                      {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedReply ? 'Copied' : 'Copy'}</span>
                     </button>
                   )}
@@ -805,8 +809,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 {/* PII Guardrail Badge */}
                 <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
                   streamMeta?.piiMasked
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40'
                 }`}>
                   <ShieldCheck className="w-3 h-3" />
                   <span>{streamMeta?.piiMasked ? 'PII Guardrail: Masked' : 'PII Guardrail: Clean'}</span>
@@ -815,12 +819,12 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 {/* Engine Source Badge */}
                 <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
                   streamMeta?.cached
-                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                    ? 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/40'
                     : isStreaming
-                    ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 animate-pulse'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/40 animate-pulse'
                     : streamedText
-                    ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                    : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40'
+                    : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40'
                 }`}>
                   <Zap className="w-3 h-3" />
                   <span>
@@ -835,7 +839,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 </div>
 
                 {/* RAG Grounding Citation */}
-                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono">
+                <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/40 font-mono">
                   <Database className="w-3 h-3" />
                   <span>{streamMeta?.ragDoc || ticket.grounding_doc || 'VOL-I (Vector SOP)'}</span>
                 </div>
@@ -843,35 +847,35 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
               {/* Active Draft Output Display */}
               {activeDraft || isStreaming ? (
-                <div className="p-4 rounded-xl bg-[#080d18] border border-cyan-500/25 text-sm text-slate-100 font-sans leading-relaxed relative shadow-inner">
+                <div className="p-4 rounded-xl bg-white border border-indigo-100 text-sm text-slate-800 font-sans leading-relaxed relative shadow-xs dark:bg-[#080d18] dark:border-cyan-500/25 dark:text-slate-100 dark:shadow-inner">
                   {streamedText || ticket.suggested_reply}
                   {isStreaming && (
-                    <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-1 align-middle" />
+                    <span className="inline-block w-2 h-4 bg-cyan-500 dark:bg-cyan-400 animate-pulse ml-1 align-middle" />
                   )}
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-[#080d18]/60 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                  <span>No suggested reply generated yet. Click <b className="text-slate-200">"Stream Live Copilot"</b> to synthesize a RAG-grounded draft in real time.</span>
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 dark:bg-[#080d18]/60 dark:border-slate-800 dark:text-slate-400 flex items-center justify-between">
+                  <span>No suggested reply generated yet. Click <b className="text-slate-800 dark:text-slate-200">"Stream Live Copilot"</b> to synthesize a RAG-grounded draft in real time.</span>
                 </div>
               )}
 
               {/* Stream Error Alert (if any) */}
               {streamError && (
-                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 dark:bg-rose-950/40 dark:border-rose-500/40 dark:text-rose-300">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
                   <span>{streamError}</span>
                 </div>
               )}
 
               {/* Action Bar: Adopt to Ticket, Insert to Composer & RLHF Feedback */}
               {activeDraft && (
-                <div className="pt-2 border-t border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
+                <div className="pt-2 border-t border-indigo-100 dark:border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     {/* Approve & Adopt to customer */}
                     <button
                       onClick={handleApprove}
                       disabled={isApproving || approvalSuccess}
-                      className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer"
                     >
                       {approvalSuccess ? (
                         <>
@@ -894,23 +898,23 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     {/* Insert to Composer to edit first */}
                     <button
                       onClick={handleInsertDraftToComposer}
-                      className="px-3.5 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition"
+                      className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition dark:bg-cyan-600/20 dark:hover:bg-cyan-600/30 dark:text-cyan-300 dark:border-cyan-500/40 cursor-pointer"
                       title="Paste draft into composer to edit before sending"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-cyan-400" />
                       <span>Edit in Composer</span>
                     </button>
                   </div>
 
                   {/* RLHF Quality Feedback */}
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-slate-400 text-[11px]">RLHF Feedback:</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-[11px]">RLHF Feedback:</span>
                     <button
                       onClick={() => handleFeedbackClick('thumbs_up')}
-                      className={`p-1.5 rounded-lg border transition ${
+                      className={`p-1.5 rounded-lg border transition cursor-pointer ${
                         feedbackSubmitted === 'thumbs_up'
-                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                          : 'bg-slate-800 text-slate-400 hover:text-emerald-300 border-slate-700'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40'
+                          : 'bg-white text-slate-500 hover:text-emerald-700 border-slate-200 shadow-xs dark:bg-slate-800 dark:text-slate-400 dark:hover:text-emerald-300 dark:border-slate-700'
                       }`}
                       title="Accurate draft (Thumbs Up)"
                     >
@@ -918,17 +922,17 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     </button>
                     <button
                       onClick={() => setShowFeedbackInput(!showFeedbackInput)}
-                      className={`p-1.5 rounded-lg border transition ${
+                      className={`p-1.5 rounded-lg border transition cursor-pointer ${
                         feedbackSubmitted === 'thumbs_down'
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                          : 'bg-slate-800 text-slate-400 hover:text-rose-300 border-slate-700'
+                          ? 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40'
+                          : 'bg-white text-slate-500 hover:text-rose-700 border-slate-200 shadow-xs dark:bg-slate-800 dark:text-slate-400 dark:hover:text-rose-300 dark:border-slate-700'
                       }`}
                       title="Needs improvement (Thumbs Down)"
                     >
                       <ThumbsDown className="w-3.5 h-3.5" />
                     </button>
                     {feedbackSubmitted && (
-                      <span className="text-[11px] text-emerald-400 font-semibold">Recorded!</span>
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Recorded!</span>
                     )}
                   </div>
                 </div>
@@ -936,17 +940,17 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
               {/* Optional human correction input */}
               {showFeedbackInput && (
-                <div className="pt-2 space-y-2 border-t border-slate-800">
+                <div className="pt-2 space-y-2 border-t border-indigo-100 dark:border-slate-800">
                   <input
                     type="text"
                     placeholder="Provide optional correction notes for the AI model..."
                     value={feedbackNotes}
                     onChange={(e) => setFeedbackNotes(e.target.value)}
-                    className="w-full bg-[#090d16] border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 shadow-xs dark:bg-[#090d16] dark:border-slate-800 dark:text-slate-200 dark:placeholder-slate-500"
                   />
                   <button
                     onClick={() => handleFeedbackClick('thumbs_down')}
-                    className="px-3 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold"
+                    className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
                   >
                     Submit Correction
                   </button>
@@ -968,22 +972,22 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
             {/* Python NLP Section */}
             {!loadingNlp && nlpAnalysis && (
-              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3 shadow-inner">
+              <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200 dark:bg-slate-900/70 dark:border-slate-800 space-y-3 shadow-xs dark:shadow-inner">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className="font-bold text-cyan-400 flex items-center gap-1.5">
-                    <Cpu className="w-4 h-4 text-cyan-400" /> Python NLP Microservice Analysis
+                  <span className="font-bold text-cyan-800 dark:text-cyan-400 flex items-center gap-1.5">
+                    <Cpu className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> Python NLP Microservice Analysis
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-800/50 uppercase">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200 uppercase dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800/50">
                       Category: {nlpAnalysis.predicted_category} ({Math.round(nlpAnalysis.confidence * 100)}%)
                     </span>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase ${
                         nlpAnalysis.urgency === 'high'
-                          ? 'bg-rose-950/50 text-rose-300 border-rose-800/40'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800/40'
                           : nlpAnalysis.urgency === 'medium'
-                          ? 'bg-amber-950/50 text-amber-300 border-amber-800/40'
-                          : 'bg-slate-800 text-slate-300 border-slate-700'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/40'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                       }`}
                     >
                       Urgency: {nlpAnalysis.urgency}
@@ -991,27 +995,27 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-300 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px] font-medium tracking-wide">EXTRACTED EMAILS</span>
+                <div className="text-xs text-slate-700 dark:text-slate-300 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs dark:bg-black/40 dark:border-slate-800/80">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-bold tracking-wider uppercase">EXTRACTED EMAILS</span>
                     <span
                       className={
                         nlpAnalysis.entities.emails?.length > 0
-                          ? 'text-cyan-300 font-mono font-medium text-[11px] break-all'
-                          : 'text-slate-500 italic text-[11px]'
+                          ? 'text-sky-700 dark:text-cyan-300 font-mono font-semibold text-[11px] break-all'
+                          : 'text-slate-400 dark:text-slate-500 italic text-[11px]'
                       }
                     >
                       {nlpAnalysis.entities.emails?.length > 0 ? nlpAnalysis.entities.emails.join(', ') : 'None detected'}
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px] font-medium tracking-wide">ORDER / INVOICE IDS</span>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs dark:bg-black/40 dark:border-slate-800/80">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-bold tracking-wider uppercase">ORDER / INVOICE IDS</span>
                     <span
                       className={
                         nlpAnalysis.entities.invoice_or_order_ids?.length > 0
-                          ? 'text-purple-300 font-mono font-medium text-[11px]'
-                          : 'text-slate-500 italic text-[11px]'
+                          ? 'text-purple-700 dark:text-purple-300 font-mono font-semibold text-[11px]'
+                          : 'text-slate-400 dark:text-slate-500 italic text-[11px]'
                       }
                     >
                       {nlpAnalysis.entities.invoice_or_order_ids?.length > 0
@@ -1020,13 +1024,13 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px] font-medium tracking-wide">PHONE NUMBERS</span>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs dark:bg-black/40 dark:border-slate-800/80">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-bold tracking-wider uppercase">PHONE NUMBERS</span>
                     <span
                       className={
                         nlpAnalysis.entities.phone_numbers?.length > 0
-                          ? 'text-emerald-300 font-mono font-medium text-[11px]'
-                          : 'text-slate-500 italic text-[11px]'
+                          ? 'text-emerald-700 dark:text-emerald-300 font-mono font-semibold text-[11px]'
+                          : 'text-slate-400 dark:text-slate-500 italic text-[11px]'
                       }
                     >
                       {nlpAnalysis.entities.phone_numbers?.length > 0
@@ -1035,13 +1039,13 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px] font-medium tracking-wide">SYSTEM ERROR CODES</span>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs dark:bg-black/40 dark:border-slate-800/80">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-bold tracking-wider uppercase">SYSTEM ERROR CODES</span>
                     <span
                       className={
                         nlpAnalysis.entities.error_codes?.length > 0
-                          ? 'text-rose-300 font-mono font-semibold text-[11px]'
-                          : 'text-slate-500 italic text-[11px]'
+                          ? 'text-rose-700 dark:text-rose-300 font-mono font-bold text-[11px]'
+                          : 'text-slate-400 dark:text-slate-500 italic text-[11px]'
                       }
                     >
                       {nlpAnalysis.entities.error_codes?.length > 0
@@ -1050,13 +1054,13 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px] font-medium tracking-wide">MONETARY AMOUNTS</span>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs dark:bg-black/40 dark:border-slate-800/80">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-bold tracking-wider uppercase">MONETARY AMOUNTS</span>
                     <span
                       className={
                         nlpAnalysis.entities.monetary_amounts?.length > 0
-                          ? 'text-amber-300 font-mono font-medium text-[11px]'
-                          : 'text-slate-500 italic text-[11px]'
+                          ? 'text-amber-700 dark:text-amber-300 font-mono font-semibold text-[11px]'
+                          : 'text-slate-400 dark:text-slate-500 italic text-[11px]'
                       }
                     >
                       {nlpAnalysis.entities.monetary_amounts?.length > 0
@@ -1065,20 +1069,20 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-2.5 rounded-xl border border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px] font-medium tracking-wide">SENTIMENT POLARITY</span>
-                    <span className="text-slate-300 font-medium text-[11px] capitalize">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs dark:bg-black/40 dark:border-slate-800/80">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-bold tracking-wider uppercase">SENTIMENT POLARITY</span>
+                    <span className="text-slate-800 dark:text-slate-300 font-semibold text-[11px] capitalize">
                       {nlpAnalysis.sentiment_hint || 'neutral'}
                     </span>
                   </div>
                 </div>
 
                 {nlpAnalysis.summary && (
-                  <div className="text-[11px] text-slate-400 bg-slate-950/40 px-3 py-1.5 rounded-lg border border-slate-800/60 flex items-center justify-between">
+                  <div className="text-[11px] text-slate-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs dark:text-slate-400 dark:bg-slate-950/40 dark:border-slate-800/60 flex items-center justify-between">
                     <span>
-                      <strong className="text-slate-300 font-medium">Pipeline Summary:</strong> {nlpAnalysis.summary}
+                      <strong className="text-slate-800 dark:text-slate-300 font-semibold">Pipeline Summary:</strong> {nlpAnalysis.summary}
                     </span>
-                    <span className="text-[10px] text-cyan-400 font-mono">Python Microservice</span>
+                    <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-mono">Python Microservice</span>
                   </div>
                 )}
               </div>
@@ -1089,9 +1093,9 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         {/* TAB 3: SOC-2 AUDIT TRAIL */}
         {activeTab === 'audit_trail' && (
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-2">
-              <span className="flex items-center gap-1.5 font-bold text-teal-400">
-                <ShieldCheck className="w-4 h-4 text-teal-400" />
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2">
+              <span className="flex items-center gap-1.5 font-bold text-teal-700 dark:text-teal-400">
+                <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 Immutable Event History (SOC-2 Type II Compliance)
               </span>
               <span className="text-[11px] font-mono text-slate-500">
@@ -1100,27 +1104,27 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
             </div>
 
             {auditLogs.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 text-xs">
+              <div className="py-12 text-center text-slate-400 dark:text-slate-500 text-xs">
                 No audit events recorded yet for this ticket.
               </div>
             ) : (
-              <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+              <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                 {auditLogs.map((log) => {
                   return (
                     <div key={log.id} className="relative group">
-                      <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-teal-500/20 border-2 border-teal-400" />
-                      <div className="bg-[#0b1220] border border-slate-800/90 rounded-xl p-3 text-xs space-y-1">
+                      <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-teal-500/20 border-2 border-teal-500 dark:border-teal-400" />
+                      <div className="bg-white dark:bg-[#0b1220] border border-slate-200 dark:border-slate-800/90 rounded-xl p-3 text-xs space-y-1 shadow-xs">
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-slate-200">{log.actor_name}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-200">{log.actor_name}</span>
                           <span className="text-[10px] font-mono text-slate-500">
                             {new Date(log.created_at).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-slate-800 text-slate-300 border border-slate-700">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
                             {log.action.replace('_', ' ')}
                           </span>
-                          <span className="text-slate-300 text-xs">{log.details}</span>
+                          <span className="text-slate-700 dark:text-slate-300 text-xs">{log.details}</span>
                         </div>
                       </div>
                     </div>
@@ -1132,15 +1136,15 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         )}
 
         {/* Modal Bottom: Status Management (Instant Optimistic Feedback) */}
-        <div className="flex items-center justify-between px-5 py-3 bg-[#090d18] border-t border-slate-800 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-[#090d18] border-t border-slate-200 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Ticket Lifecycle:</span>
-            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300 uppercase">
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Ticket Lifecycle:</span>
+            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 uppercase shadow-xs">
               {ticket.status.replace('_', ' ')}
             </span>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-slate-200/70 dark:bg-slate-900/90 border border-slate-300/70 dark:border-slate-800 p-1 rounded-xl">
             {(['open', 'in_progress', 'closed'] as TicketStatus[]).map((st) => {
               const isActive = ticket.status === st;
               return (
@@ -1158,11 +1162,11 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
                     isActive
                       ? st === 'closed'
-                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30 font-bold'
+                        ? 'bg-emerald-600 text-white shadow-xs font-bold'
                         : st === 'in_progress'
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30 font-bold'
-                        : 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/30 font-bold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                        ? 'bg-blue-600 text-white shadow-xs font-bold'
+                        : 'bg-amber-500 text-slate-950 shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   {st.replace('_', ' ')}
