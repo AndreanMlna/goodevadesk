@@ -365,80 +365,57 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#0f172a] border border-slate-700/80 w-full max-w-3xl rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden relative">
-        {/* Modal Top Bar & Close */}
-        <div className="p-5 border-b border-slate-800 bg-[#0c1222] flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-[#0f172a] border border-slate-700/80 w-full max-w-5xl rounded-3xl shadow-2xl flex flex-col h-[90vh] overflow-hidden relative">
+        {/* Modal Top Metadata Bar & Controls */}
+        <div className="px-5 py-3 border-b border-slate-800 bg-[#0c1222] flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60 shrink-0">
               ID: {ticket.id.slice(0, 13)}...
             </span>
             {ticket.priority && (
-              <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${priorityStyle}`}>
+              <span className={`text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 ${priorityStyle}`}>
                 {isCritical && <Flame className="w-3 h-3 text-rose-400" />}
                 {ticket.priority}
               </span>
             )}
             {ticket.category && (
-              <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${categoryStyle}`}>
+              <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md border shrink-0 ${categoryStyle}`}>
                 {ticket.category}
               </span>
             )}
             {ticket.urgency_score !== undefined && ticket.urgency_score !== null && (
-              <span className="text-xs font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-md shrink-0">
                 Urgency: {Math.round(ticket.urgency_score * 100)}%
+              </span>
+            )}
+            {ticket.sla_deadline && (
+              <span
+                className={`text-[10px] font-medium px-2 py-0.5 rounded-md border flex items-center gap-1 font-mono shrink-0 ${
+                  ticket.status === 'closed'
+                    ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400'
+                    : deadlineInfo?.isBreached
+                    ? 'bg-rose-950/40 border-rose-500/30 text-rose-400'
+                    : 'bg-slate-800/80 border-slate-700 text-slate-300'
+                }`}
+                title={`SLA Resolution Target: ${new Date(ticket.sla_deadline).toLocaleString()}`}
+              >
+                <Clock className="w-3 h-3 text-purple-400 shrink-0" />
+                <span>{ticket.status === 'closed' ? 'SLA Resolved' : deadlineInfo?.isBreached ? 'SLA Breached' : deadlineInfo?.text}</span>
               </span>
             )}
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Enterprise Collision Warning Banner */}
-        {collisionAgents.length > 0 && (
-          <div className="mx-6 mt-3 p-3 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 flex items-center justify-between gap-3 text-xs text-amber-200 animate-pulse">
-            <div className="flex items-center gap-2 font-medium">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>
-                <strong className="text-amber-300">Collision Alert:</strong> {collisionAgents.join(', ')} is also viewing/editing this ticket. Coordinate to prevent conflicting responses.
-              </span>
-            </div>
-            <span className="text-[10px] font-mono font-bold uppercase bg-amber-500/25 px-2.5 py-0.5 rounded text-amber-300 border border-amber-500/40 shrink-0">
-              Live Presence
-            </span>
-          </div>
-        )}
-
-        {/* Header Subject, Assignee & SLA */}
-        <div className="px-6 py-4 bg-[#090e1a] border-b border-slate-800/80 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-snug">
-                {ticket.subject}
-              </h2>
-              <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-                <span>
-                  From: <span className="text-slate-200 font-semibold">{ticket.customer_email}</span>
-                </span>
-                <span>•</span>
-                <span>{new Date(ticket.created_at).toLocaleString()}</span>
-              </div>
-            </div>
-
-            {/* Agent Assignment Selector */}
-            <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-xl shrink-0">
-              <User className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-xs text-slate-400 font-medium">Assignee:</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Compact Assignee Selector */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 rounded-lg">
+              <User className="w-3 h-3 text-indigo-400 shrink-0" />
+              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">Assignee:</span>
               <select
                 value={assignedTo || 'Unassigned'}
                 onChange={handleAssigneeChange}
                 disabled={isAssigning}
-                className="bg-transparent text-xs text-indigo-200 font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-[11px] text-indigo-200 font-semibold focus:outline-none cursor-pointer max-w-[130px] sm:max-w-[180px] truncate"
               >
                 {TEAM_MEMBERS.map((member) => (
                   <option key={member} value={member} className="bg-slate-900 text-slate-200">
@@ -447,59 +424,57 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 ))}
               </select>
             </div>
+
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              title="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Enterprise Collision Warning Banner */}
+        {collisionAgents.length > 0 && (
+          <div className="mx-5 mt-2.5 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-between gap-3 text-xs text-amber-200 animate-pulse shrink-0">
+            <div className="flex items-center gap-2 font-medium">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                <strong className="text-amber-300">Collision Alert:</strong> {collisionAgents.join(', ')} is also viewing this ticket.
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-bold uppercase bg-amber-500/25 px-2 py-0.5 rounded text-amber-300 border border-amber-500/40 shrink-0">
+              Live Presence
+            </span>
+          </div>
+        )}
+
+        {/* Header Subject & Segmented Navigation Tabs */}
+        <div className="px-5 py-3 bg-[#090e1a] border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug truncate" title={ticket.subject}>
+              {ticket.subject}
+            </h2>
+            <div className="text-[11px] text-slate-400 flex items-center gap-2 truncate mt-0.5">
+              <span>From: <strong className="text-slate-300 font-mono">{ticket.customer_email}</strong></span>
+              <span>•</span>
+              <span>{new Date(ticket.created_at).toLocaleString()}</span>
+            </div>
           </div>
 
-          {/* SLA Resolution Target */}
-          {ticket.sla_deadline && (
-            <div
-              className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                ticket.status === 'closed'
-                  ? 'bg-emerald-950/20 border-emerald-500/30'
-                  : deadlineInfo?.isBreached
-                  ? 'bg-rose-950/20 border-rose-500/30'
-                  : 'bg-slate-900/80 border-slate-800'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {ticket.status === 'closed' ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                ) : (
-                  <Clock className="w-4 h-4 text-purple-400" />
-                )}
-                <span className="text-slate-300 font-medium">SLA Resolution Target:</span>
-                <span className="font-mono text-purple-200">
-                  {new Date(ticket.sla_deadline).toLocaleString()}
-                </span>
-              </div>
-              {ticket.status === 'closed' ? (
-                <span className="text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1 text-[11px]">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  SLA Resolved
-                </span>
-              ) : deadlineInfo?.isBreached ? (
-                <span className="text-rose-400 font-bold px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/30 text-[11px]">
-                  SLA Breached
-                </span>
-              ) : (
-                <span className="text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[11px]">
-                  {deadlineInfo?.text}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Enterprise Navigation Tabs */}
-          <div className="flex items-center gap-2 pt-1">
+          {/* Compact Segmented Navigation Tabs */}
+          <div className="flex items-center gap-1.5 shrink-0 bg-slate-900/70 p-1 rounded-xl border border-slate-800">
             <button
               onClick={() => setActiveTab('conversation')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
                 activeTab === 'conversation'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
-              <span>Conversation & Whispers</span>
+              <span>Conversation</span>
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 font-mono">
                 {messages.length}
               </span>
@@ -507,29 +482,29 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
             <button
               onClick={() => setActiveTab('ai_insights')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
                 activeTab === 'ai_insights'
-                  ? 'bg-purple-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-purple-300" />
-              <span>AI & NLP Intelligence</span>
+              <span>AI Intel</span>
               {ticket.grounding_doc && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               )}
             </button>
 
             <button
               onClick={() => setActiveTab('audit_trail')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
                 activeTab === 'audit_trail'
-                  ? 'bg-teal-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-teal-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>SOC-2 Audit Trail</span>
+              <span>Audit Trail</span>
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/30 font-mono">
                 {auditLogs.length}
               </span>
@@ -537,58 +512,61 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           </div>
         </div>
 
-        {/* TAB 1: CONVERSATION & WHISPERS */}
+        {/* TAB 1: CONVERSATION & WHISPERS (EXPANDED TO DOMINATE MODAL SPACE) */}
         {activeTab === 'conversation' && (
           <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            {/* Scrollable Message Timeline */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {/* Scrollable Message Timeline with Generous Space */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
               {messages.map((msg) => {
                 const isInternalNote = msg.sender_type === 'internal_note';
                 const isCustomer = msg.sender_type === 'customer';
-                const isAgent = msg.sender_type === 'agent' || msg.sender_type === 'system';
+
+                if (isInternalNote) {
+                  return (
+                    <div key={msg.id} className="w-full flex flex-col items-center my-1.5 animate-fadeIn">
+                      <div className="w-full max-w-2xl bg-amber-950/20 border border-amber-500/35 rounded-xl p-3 text-xs text-amber-100 shadow-sm">
+                        <div className="flex items-center justify-between text-[11px] text-amber-400 font-semibold mb-1 pb-1 border-b border-amber-500/20">
+                          <div className="flex items-center gap-1.5">
+                            <Lock className="w-3 h-3" />
+                            <span className="uppercase tracking-wider text-[10px] font-bold">Team Whisper</span>
+                            <span className="text-amber-300/80 font-normal">({msg.sender_name})</span>
+                          </div>
+                          <span className="text-[10px] text-amber-400/80 font-mono">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="whitespace-pre-wrap text-amber-100/90 leading-relaxed font-sans">{msg.content}</p>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <div
                     key={msg.id}
                     className={`flex flex-col ${
-                      isInternalNote
-                        ? 'items-center'
-                        : isCustomer
-                        ? 'items-start'
-                        : 'items-end'
-                    }`}
+                      isCustomer ? 'items-start' : 'items-end ml-auto'
+                    } max-w-[85%] sm:max-w-[78%] animate-fadeIn`}
                   >
-                    {/* Header info */}
+                    {/* Message Header Info */}
                     <div className="flex items-center gap-2 mb-1 px-1 text-[11px] text-slate-400">
-                      <span className="font-semibold text-slate-300 flex items-center gap-1">
-                        {isInternalNote && <Lock className="w-3 h-3 text-amber-400" />}
+                      <span className={`font-semibold ${isCustomer ? 'text-slate-300' : 'text-indigo-300'}`}>
                         {msg.sender_name}
                       </span>
                       <span>•</span>
-                      <span>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      {isInternalNote && (
-                        <span className="text-[10px] font-bold text-amber-400 uppercase bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/30">
-                          Team Whisper Only
-                        </span>
-                      )}
+                      <span className="font-mono">
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
 
                     {/* Message Bubble */}
                     <div
-                      className={`max-w-[85%] sm:max-w-[78%] rounded-2xl p-4 text-xs leading-relaxed ${
-                        isInternalNote
-                          ? 'w-full bg-amber-950/20 border-2 border-dashed border-amber-500/40 text-amber-100 rounded-2xl shadow-inner'
-                          : isCustomer
-                          ? 'bg-[#0b1324] border border-slate-700/80 text-slate-200 rounded-tl-sm shadow-md'
-                          : 'bg-indigo-950/40 border border-indigo-500/40 text-indigo-50 rounded-tr-sm shadow-md'
+                      className={`rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed shadow-sm ${
+                        isCustomer
+                          ? 'bg-[#0b1324] border border-slate-700/70 text-slate-100 rounded-tl-sm'
+                          : 'bg-indigo-950/40 border border-indigo-500/40 text-indigo-50 rounded-tr-sm'
                       }`}
                     >
-                      {isInternalNote && (
-                        <div className="flex items-center gap-1.5 text-amber-400 font-bold mb-1.5 text-[11px] uppercase tracking-wider">
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Internal Staff Note (Hidden from Customer)</span>
-                        </div>
-                      )}
                       <p className="whitespace-pre-wrap font-sans">{msg.content}</p>
                     </div>
                   </div>
@@ -597,33 +575,33 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Thread Composer */}
-            <form onSubmit={handleSendMessage} className="p-4 bg-[#090d18] border-t border-slate-800 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+            {/* Streamlined Thread Composer */}
+            <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-[#090d18] border-t border-slate-800 space-y-2.5 shrink-0">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-lg border border-slate-800">
                   <button
                     type="button"
                     onClick={() => setComposerType('agent')}
-                    className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition ${
                       composerType === 'agent'
                         ? 'bg-indigo-600 text-white shadow-sm'
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    <CornerDownRight className="w-3.5 h-3.5" />
+                    <CornerDownRight className="w-3 h-3" />
                     <span>Public Reply</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setComposerType('internal_note')}
-                    className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition ${
                       composerType === 'internal_note'
                         ? 'bg-amber-600 text-white shadow-sm'
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    <Lock className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Internal Whisper Note</span>
+                    <Lock className="w-3 h-3 text-amber-300" />
+                    <span>Internal Whisper</span>
                   </button>
                 </div>
 
@@ -632,22 +610,22 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     type="button"
                     onClick={handleStartStream}
                     disabled={isStreaming}
-                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-500/40 text-cyan-200 hover:from-cyan-600/50 hover:to-blue-600/50 transition font-medium disabled:opacity-50"
+                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-500/40 text-cyan-200 hover:from-cyan-600/50 hover:to-blue-600/50 transition font-semibold disabled:opacity-50 cursor-pointer"
                     title="Stream real-time AI reply draft with PII protection"
                   >
                     <Zap className={`w-3 h-3 text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
-                    <span>{isStreaming ? 'Streaming Draft...' : 'Stream AI Copilot'}</span>
+                    <span>{isStreaming ? 'Streaming...' : 'Stream AI Copilot'}</span>
                   </button>
-                  <span className="text-[11px] text-slate-500 hidden sm:inline-flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500 hidden md:inline-flex items-center gap-1">
                     {composerType === 'internal_note' ? (
                       <>
-                        <Lock className="w-3 h-3 text-amber-400 shrink-0" />
-                        <span>Only visible to staff members</span>
+                        <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                        <span>Staff only</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-3 h-3 text-blue-400 shrink-0" />
-                        <span>Dispatched to customer email</span>
+                        <Send className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                        <span>Sends to email</span>
                       </>
                     )}
                   </span>
@@ -656,28 +634,28 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
               {/* Compact Copilot Streaming Preview Banner */}
               {(isStreaming || (streamedText && composerContent !== streamedText)) && (
-                <div className="p-2.5 rounded-xl border border-cyan-500/30 bg-cyan-950/20 text-xs space-y-1.5 animate-fadeIn">
+                <div className="p-2 rounded-xl border border-cyan-500/30 bg-cyan-950/20 text-xs space-y-1 animate-fadeIn">
                   <div className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-2 text-cyan-300 font-semibold">
-                      <Zap className={`w-3.5 h-3.5 text-cyan-400 ${isStreaming ? 'animate-spin' : ''}`} />
-                      <span>{isStreaming ? 'AI Copilot Streaming (SSE)...' : 'AI Copilot Draft Ready'}</span>
+                      <Zap className={`w-3 h-3 text-cyan-400 ${isStreaming ? 'animate-spin' : ''}`} />
+                      <span>{isStreaming ? 'AI Streaming (SSE)...' : 'AI Copilot Draft'}</span>
                       {streamMeta?.cached && (
-                        <span className="px-1.5 py-0.2 rounded bg-cyan-500/20 text-[10px] text-cyan-300 border border-cyan-500/40">
-                          Semantic Cache Hit
+                        <span className="px-1.5 py-0.2 rounded bg-cyan-500/20 text-[9px] text-cyan-300 border border-cyan-500/40">
+                          Cache Hit
                         </span>
                       )}
                       {streamMeta?.piiMasked && (
-                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 border border-amber-500/40">
+                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-[9px] text-amber-300 border border-amber-500/40">
                           PII Masked
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div>
                       {isStreaming ? (
                         <button
                           type="button"
                           onClick={handleStopStream}
-                          className="px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 text-[10px] border border-rose-500/30"
+                          className="px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 text-[10px] border border-rose-500/30 cursor-pointer"
                         >
                           Stop
                         </button>
@@ -685,16 +663,16 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                         <button
                           type="button"
                           onClick={handleInsertStreamToComposer}
-                          className="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-semibold"
+                          className="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-semibold cursor-pointer"
                         >
                           Insert into Composer
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className="text-slate-300 font-mono text-[11px] max-h-16 overflow-y-auto leading-relaxed">
+                  <p className="text-slate-300 font-mono text-[11px] max-h-14 overflow-y-auto leading-relaxed">
                     {streamedText}
-                    {isStreaming && <span className="inline-block w-1 h-3.5 bg-cyan-400 animate-pulse ml-0.5 align-middle" />}
+                    {isStreaming && <span className="inline-block w-1 h-3 bg-cyan-400 animate-pulse ml-0.5 align-middle" />}
                   </p>
                 </div>
               )}
@@ -715,7 +693,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                       : 'Type a multi-turn reply to the customer (Press Ctrl+Enter to send)...'
                   }
                   rows={2}
-                  className={`w-full bg-[#0d1424] border rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none transition resize-none ${
+                  className={`w-full bg-[#0d1424] border rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none transition resize-none ${
                     composerType === 'internal_note'
                       ? 'border-amber-500/30 focus:border-amber-500'
                       : 'border-indigo-500/30 focus:border-indigo-500'
@@ -725,7 +703,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSendingMessage || !composerContent.trim()}
-                  className={`px-4 py-3 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition shrink-0 disabled:opacity-40 ${
+                  className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition shrink-0 disabled:opacity-40 cursor-pointer ${
                     composerType === 'internal_note'
                       ? 'bg-amber-600 hover:bg-amber-500'
                       : 'bg-indigo-600 hover:bg-indigo-500'
@@ -735,8 +713,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
-                      <span className="hidden sm:inline">Send</span>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send</span>
                     </>
                   )}
                 </button>
@@ -1146,29 +1124,44 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
           </div>
         )}
 
-        {/* Modal Bottom: Status Management */}
-        <div className="flex items-center justify-between px-6 py-3.5 bg-[#090d18] border-t border-slate-800">
-          <div className="text-xs text-slate-400 font-medium">Ticket Lifecycle:</div>
+        {/* Modal Bottom: Status Management (Instant Optimistic Feedback) */}
+        <div className="flex items-center justify-between px-5 py-3 bg-[#090d18] border-t border-slate-800 shrink-0">
           <div className="flex items-center gap-2">
-            {(['open', 'in_progress', 'closed'] as TicketStatus[]).map((st) => (
-              <button
-                key={st}
-                onClick={async () => {
-                  await onStatusUpdate(ticket.id, st);
-                  if (apiKey) {
-                    const freshLogs = await fetchAuditLogs(apiKey, ticket.id);
-                    setAuditLogs(freshLogs);
-                  }
-                }}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize transition ${
-                  ticket.status === st
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {st.replace('_', ' ')}
-              </button>
-            ))}
+            <span className="text-xs text-slate-400 font-medium">Ticket Lifecycle:</span>
+            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300 uppercase">
+              {ticket.status.replace('_', ' ')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
+            {(['open', 'in_progress', 'closed'] as TicketStatus[]).map((st) => {
+              const isActive = ticket.status === st;
+              return (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => {
+                    if (ticket.status === st) return;
+                    // Instant 0ms optimistic trigger
+                    onStatusUpdate(ticket.id, st);
+                    if (apiKey) {
+                      fetchAuditLogs(apiKey, ticket.id).then(setAuditLogs).catch(() => {});
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                    isActive
+                      ? st === 'closed'
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30 font-bold'
+                        : st === 'in_progress'
+                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30 font-bold'
+                        : 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/30 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`}
+                >
+                  {st.replace('_', ' ')}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

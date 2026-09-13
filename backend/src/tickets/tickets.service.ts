@@ -381,7 +381,15 @@ export class TicketsService {
     id: string,
     dto: UpdateTicketStatusDto,
   ): Promise<Ticket> {
-    await this.findOne(organizationId, id);
+    const existing = await this.prisma.ticket.findFirst({
+      where: { id, organization_id: organizationId },
+      select: { id: true, status: true },
+    });
+
+    if (!existing) {
+      this.logger.warn(`Ticket not found or cross-tenant update attempted: ticket [${id}], tenant [${organizationId}]`);
+      throw new NotFoundException(`Ticket with ID "${id}" was not found`);
+    }
 
     const updated = await this.prisma.ticket.update({
       where: { id },

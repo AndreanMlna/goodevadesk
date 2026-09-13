@@ -168,13 +168,28 @@ export default function App() {
   };
 
   const handleStatusUpdate = async (id: string, newStatus: TicketStatus) => {
+    // Optimistic UI Update: Immediate 0ms local state reflection
+    const prevTickets = [...tickets];
+    const prevSelected = selectedTicket ? { ...selectedTicket } : null;
+
+    setTickets((prev: Ticket[]) =>
+      prev.map((t: Ticket) => (t.id === id ? { ...t, status: newStatus } : t))
+    );
+    if (selectedTicket?.id === id) {
+      setSelectedTicket((prev) => (prev ? { ...prev, status: newStatus } : null));
+    }
+
     try {
       const updated = await updateTicketStatus(apiKey, id, newStatus);
+      // Reconcile with authoritative server response
       setTickets((prev: Ticket[]) => prev.map((t: Ticket) => (t.id === id ? updated : t)));
       if (selectedTicket?.id === id) {
-        setSelectedTicket(updated);
+        setSelectedTicket((prev) => (prev ? { ...prev, ...updated } : null));
       }
     } catch (err: any) {
+      // Rollback on failure
+      setTickets(prevTickets);
+      if (prevSelected) setSelectedTicket(prevSelected);
       alert(`Status update failed: ${err.message}`);
     }
   };
