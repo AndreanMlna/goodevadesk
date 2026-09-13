@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         theme === 'light'
           ? 'bg-[#f8fafc] border-r border-slate-200'
           : 'bg-[#090e1a] border-r border-slate-800/80'
-      } hidden md:flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 transition-all duration-300 select-none`}
+      } hidden md:flex flex-col justify-between shrink-0 h-screen sticky top-0 z-40 transition-all duration-300 select-none`}
     >
       <div className="flex flex-col h-full relative">
         {/* Top Workspace / Tenant Switcher */}
@@ -180,20 +180,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </button>
 
-          {/* Tenant Dropdown Menu */}
+          {/* Tenant Dropdown Menu - Popover anchored with pointer arrow and high z-index */}
           {isTenantDropdownOpen && (
             <div
               className={`absolute ${
                 isCollapsed
-                  ? 'left-[calc(100%+10px)] top-2 w-64'
+                  ? 'left-[calc(100%+12px)] top-2.5 w-64'
                   : 'top-[78px] left-4 right-4'
               } ${
                 theme === 'light'
-                  ? 'bg-white border border-slate-200 shadow-2xl'
-                  : 'bg-[#111827] border border-slate-700/80 shadow-2xl'
-              } rounded-2xl p-2.5 z-50 animate-fadeIn`}
+                  ? 'bg-white/98 border border-slate-200 shadow-2xl shadow-slate-900/15 ring-1 ring-black/5'
+                  : 'bg-[#0f172a]/98 border border-slate-700/80 shadow-2xl shadow-black/70 ring-1 ring-white/10'
+              } backdrop-blur-xl rounded-2xl p-2.5 z-50 animate-fadeIn`}
             >
-              <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 dark:border-slate-800/60 mb-1">
+              {/* Subtle anchor arrow in collapsed flyout mode */}
+              {isCollapsed && (
+                <div
+                  className={`absolute -left-1.5 top-5 w-3 h-3 rotate-45 pointer-events-none ${
+                    theme === 'light'
+                      ? 'bg-white border-l border-b border-slate-200'
+                      : 'bg-[#0f172a] border-l border-b border-slate-700/80'
+                  }`}
+                />
+              )}
+              <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-slate-800/60 mb-1.5">
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider ${
                     theme === 'light' ? 'text-slate-500' : 'text-slate-400'
@@ -201,7 +211,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 >
                   Select Organization
                 </span>
-                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold font-mono">
+                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold font-mono">
                   {tenants.length} Active
                 </span>
               </div>
@@ -214,22 +224,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onTenantChange(t);
                       setIsTenantDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition cursor-pointer ${
                       selectedTenant.id === t.id
                         ? theme === 'light'
-                          ? 'bg-blue-50 text-blue-600 font-bold border border-blue-200 shadow-sm'
+                          ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm'
                           : 'bg-blue-600/20 text-blue-300 font-semibold border border-blue-500/30'
                         : theme === 'light'
-                        ? 'text-slate-700 hover:bg-slate-100 font-medium'
-                        : 'text-slate-300 hover:bg-slate-800'
+                        ? 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'
+                        : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-2 h-2 rounded-full ${selectedTenant.id === t.id ? 'bg-blue-500' : 'bg-slate-400'}`} />
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          selectedTenant.id === t.id
+                            ? 'bg-blue-500 ring-2 ring-blue-500/30'
+                            : 'bg-slate-400'
+                        }`}
+                      />
                       <span className="font-semibold">{t.name}</span>
                     </div>
                     {selectedTenant.id === t.id ? (
-                      <Check className={`w-4 h-4 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} />
+                      <Check
+                        className={`w-4 h-4 ${
+                          theme === 'light' ? 'text-blue-600' : 'text-blue-400'
+                        }`}
+                      />
                     ) : (
                       <span className="text-[10px] text-slate-400 font-mono">Active</span>
                     )}

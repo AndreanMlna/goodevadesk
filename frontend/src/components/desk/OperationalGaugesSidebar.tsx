@@ -82,10 +82,10 @@ export const OperationalGaugesSidebar: React.FC<OperationalGaugesSidebarProps> =
           {/* Redis Cache Hit Ratio Progress Bar */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">Cache Hit Ratio</span>
-              <span className="font-bold text-amber-300 font-mono">{cacheHitRatio.toFixed(1)}%</span>
+              <span className="text-slate-500 dark:text-slate-400">Cache Hit Ratio</span>
+              <span className="font-bold text-amber-600 dark:text-amber-300 font-mono">{cacheHitRatio.toFixed(1)}%</span>
             </div>
-            <div className="w-full bg-slate-900/90 h-2 rounded-full overflow-hidden border border-slate-800/80 p-0.5">
+            <div className="w-full bg-slate-200 dark:bg-slate-900/90 h-2 rounded-full overflow-hidden border border-slate-300/80 dark:border-slate-800/80 p-0.5">
               <div
                 className="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full transition-all duration-500 shadow-sm shadow-amber-500/50"
                 style={{ width: `${cacheHitRatio}%` }}
@@ -96,10 +96,10 @@ export const OperationalGaugesSidebar: React.FC<OperationalGaugesSidebarProps> =
           {/* First Contact Resolution (FCR) Progress Bar */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">First Contact Resolution</span>
-              <span className="font-bold text-emerald-300 font-mono">{fcrRatio.toFixed(1)}%</span>
+              <span className="text-slate-500 dark:text-slate-400">First Contact Resolution</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-300 font-mono">{fcrRatio.toFixed(1)}%</span>
             </div>
-            <div className="w-full bg-slate-900/90 h-2 rounded-full overflow-hidden border border-slate-800/80 p-0.5">
+            <div className="w-full bg-slate-200 dark:bg-slate-900/90 h-2 rounded-full overflow-hidden border border-slate-300/80 dark:border-slate-800/80 p-0.5">
               <div
                 className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500 shadow-sm shadow-emerald-500/50"
                 style={{ width: `${fcrRatio}%` }}
@@ -112,9 +112,9 @@ export const OperationalGaugesSidebar: React.FC<OperationalGaugesSidebarProps> =
       {/* Top Issue Categories & Volume */}
       <div className="double-bezel">
         <div className="double-bezel-inner p-5 space-y-4">
-          <h4 className="text-sm font-bold text-white tracking-tight flex items-center justify-between">
+          <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight flex items-center justify-between">
             <span>Top Incident Categories</span>
-            <span className="text-[10px] text-slate-400 font-mono font-medium">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-medium">
               {sortedCategories.length} active
             </span>
           </h4>
@@ -128,20 +128,20 @@ export const OperationalGaugesSidebar: React.FC<OperationalGaugesSidebarProps> =
                 return (
                   <div
                     key={catKey}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/70 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-900 transition"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-200/70 dark:hover:bg-slate-900 transition"
                   >
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${meta.dotColor} shadow-sm`} />
-                      <span className="text-slate-300 font-medium">{meta.label}</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-medium">{meta.label}</span>
                     </div>
-                    <span className="font-bold text-white font-mono text-[11px]">
+                    <span className="font-bold text-slate-900 dark:text-white font-mono text-[11px]">
                       {count} {count === 1 ? 'tkt' : 'tkts'}
                     </span>
                   </div>
                 );
               })
             ) : (
-              <div className="p-3 text-center text-xs text-slate-500 italic bg-slate-900/30 rounded-xl border border-slate-800/40">
+              <div className="p-3 text-center text-xs text-slate-500 italic bg-slate-100 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-800/40">
                 No incidents logged for this tenant
               </div>
             )}
@@ -151,12 +151,12 @@ export const OperationalGaugesSidebar: React.FC<OperationalGaugesSidebarProps> =
 
       {/* Quick RAG & 3D Knowledge Hub Action */}
       <div className="double-bezel group">
-        <div className="double-bezel-inner p-5 space-y-3.5 bg-gradient-to-b from-[#111827] to-[#151c2e]">
-          <div className="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase tracking-wider">
+        <div className="double-bezel-inner p-5 space-y-3.5 bg-gradient-to-b from-indigo-50/70 via-white to-indigo-50/30 dark:from-[#111827] dark:to-[#151c2e] border border-indigo-100/80 dark:border-transparent">
+          <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-xs font-bold uppercase tracking-wider">
             <Layers className="w-4 h-4" />
             <span>Authoritative RAG Hub</span>
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
             Operational volumes Vol I - VII actively ground the automated triage pipeline with zero hallucinations.
           </p>
           {onNavigateToShelf && (
