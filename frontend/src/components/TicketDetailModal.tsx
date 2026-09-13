@@ -301,11 +301,15 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
     setIsStreaming(false);
   };
 
-  const handleInsertStreamToComposer = () => {
-    if (!streamedText.trim()) return;
-    setComposerContent((prev) => (prev ? `${prev}\n\n${streamedText}` : streamedText));
+  const activeDraft = (streamedText || ticket.suggested_reply || '').trim();
+
+  const handleInsertDraftToComposer = () => {
+    if (!activeDraft) return;
+    setComposerContent((prev) => (prev ? `${prev}\n\n${activeDraft}` : activeDraft));
     setActiveTab('conversation');
   };
+
+  const handleInsertStreamToComposer = handleInsertDraftToComposer;
 
   const handleFeedbackClick = async (rating: 'thumbs_up' | 'thumbs_down') => {
     try {
@@ -740,36 +744,33 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
         {/* TAB 2: AI & NLP INTELLIGENCE */}
         {activeTab === 'ai_insights' && (
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* RAG Knowledge Base Grounding Notice */}
-            {ticket.grounding_doc && (
-              <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 flex items-start gap-3 text-xs text-indigo-300">
-                <FileText className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold flex items-center gap-2">
-                    <span>Anti-Hallucination RAG Grounding Active</span>
-                    <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-[10px] font-mono border border-indigo-500/40">
-                      {ticket.grounding_doc}
-                    </span>
+            {/* Enterprise Fase 3: Unified Real-Time AI Copilot & RAG Workspace */}
+            <div className="p-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/20 via-slate-900/60 to-purple-950/20 space-y-4 relative overflow-hidden shadow-xl">
+              {/* Header Bar: Title + Badges + Quick Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-cyan-300 text-xs font-bold uppercase tracking-wider">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white shadow-md">
+                    <Zap className={`w-4 h-4 ${isStreaming ? 'animate-bounce text-yellow-300' : ''}`} />
                   </div>
-                  <p className="text-[11px] text-indigo-200/80 mt-1">
-                    Draft reply was synthesized by grounding against enterprise standard operating procedure ({ticket.grounding_doc}).
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-100 font-extrabold text-sm tracking-normal capitalize">Enterprise AI Copilot</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase font-mono tracking-wider">
+                        RAG Grounded
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-normal normal-case">
+                      Real-time response synthesizer with PII sanitization & semantic caching
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            {/* Enterprise Fase 3: Real-Time SSE Streaming AI Copilot */}
-            <div className="p-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/20 via-slate-900/40 to-blue-950/20 space-y-3.5 relative overflow-hidden shadow-lg">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold uppercase tracking-wider">
-                  <Zap className={`w-4 h-4 text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
-                  <span>Enterprise AI Copilot (SSE Real-Time Stream)</span>
-                </div>
                 <div className="flex items-center gap-2">
+                  {/* Re-Stream / Stop Stream Action */}
                   {isStreaming ? (
                     <button
                       onClick={handleStopStream}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 rounded-lg border border-rose-500/30 transition"
+                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 rounded-xl border border-rose-500/30 transition shadow"
                     >
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                       <span>Stop Stream</span>
@@ -777,16 +778,29 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                   ) : (
                     <button
                       onClick={handleStartStream}
-                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg shadow transition"
+                      className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-md transition"
+                      title="Re-generate response token-by-token with real-time vector RAG"
                     >
                       <Zap className="w-3.5 h-3.5 text-cyan-200" />
-                      <span>{streamedText ? 'Re-Stream AI Reply' : 'Stream Live Copilot Draft'}</span>
+                      <span>{streamedText ? 'Re-Stream (SSE)' : 'Stream Live Copilot'}</span>
+                    </button>
+                  )}
+
+                  {/* Copy Active Draft */}
+                  {activeDraft && (
+                    <button
+                      onClick={() => handleCopyReply(activeDraft)}
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs flex items-center gap-1.5 border border-slate-700 transition"
+                      title="Copy current AI reply to clipboard"
+                    >
+                      {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedReply ? 'Copied' : 'Copy'}</span>
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Guardrails & Cache Telemetry Pill Badges */}
+              {/* Guardrails, Engine Source, and Grounding Telemetry Pill Badges */}
               <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
                 {/* PII Guardrail Badge */}
                 <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
@@ -795,101 +809,69 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                 }`}>
                   <ShieldCheck className="w-3 h-3" />
-                  <span>{streamMeta?.piiMasked ? 'PII Guardrail: Masked & Redacted' : 'PII Guardrail: Clean'}</span>
+                  <span>{streamMeta?.piiMasked ? 'PII Guardrail: Masked' : 'PII Guardrail: Clean'}</span>
                 </div>
 
-                {/* Cache Badge */}
+                {/* Engine Source Badge */}
                 <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
                   streamMeta?.cached
                     ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                    : isStreaming
+                    ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40 animate-pulse'
+                    : streamedText
+                    ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
                     : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
                 }`}>
                   <Zap className="w-3 h-3" />
-                  <span>{streamMeta?.cached ? 'Semantic Cache: Hit (Sub-15ms)' : 'Engine: Live SSE Stream'}</span>
+                  <span>
+                    {streamMeta?.cached
+                      ? 'Semantic Cache: Hit (Sub-15ms)'
+                      : isStreaming
+                      ? 'Streaming Tokens...'
+                      : streamedText
+                      ? 'Engine: Live SSE Streamed'
+                      : 'Engine: Pre-Computed SOP Draft'}
+                  </span>
                 </div>
 
-                {/* RAG Grounding Source */}
+                {/* RAG Grounding Citation */}
                 <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono">
                   <Database className="w-3 h-3" />
                   <span>{streamMeta?.ragDoc || ticket.grounding_doc || 'VOL-I (Vector SOP)'}</span>
                 </div>
               </div>
 
-              {/* Streaming Output Display */}
-              {streamedText || isStreaming ? (
-                <div className="p-4 rounded-xl bg-[#080d18] border border-cyan-500/30 text-sm text-slate-100 font-sans leading-relaxed relative">
-                  {streamedText}
+              {/* Active Draft Output Display */}
+              {activeDraft || isStreaming ? (
+                <div className="p-4 rounded-xl bg-[#080d18] border border-cyan-500/25 text-sm text-slate-100 font-sans leading-relaxed relative shadow-inner">
+                  {streamedText || ticket.suggested_reply}
                   {isStreaming && (
-                    <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-0.5 align-middle" />
-                  )}
-
-                  {!isStreaming && streamedText && (
-                    <div className="mt-3 pt-3 border-t border-cyan-500/20 flex flex-wrap items-center justify-between gap-2">
-                      <button
-                        onClick={handleInsertStreamToComposer}
-                        className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Insert into Conversation Composer</span>
-                      </button>
-                      <button
-                        onClick={() => handleCopyReply(streamedText)}
-                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1 transition"
-                      >
-                        {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedReply ? 'Copied!' : 'Copy'}</span>
-                      </button>
-                    </div>
+                    <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-1 align-middle" />
                   )}
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-[#080d18]/60 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                  <span>Click <b className="text-slate-200">"Stream Live Copilot Draft"</b> to stream token-by-token responses with real-time PII sanitization and vector RAG.</span>
+                  <span>No suggested reply generated yet. Click <b className="text-slate-200">"Stream Live Copilot"</b> to synthesize a RAG-grounded draft in real time.</span>
                 </div>
               )}
 
+              {/* Stream Error Alert (if any) */}
               {streamError && (
                 <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
                   <span>{streamError}</span>
                 </div>
               )}
-            </div>
 
-            {/* LLM Suggested Reply Section + HITL Approval & Feedback */}
-            <div className="p-5 rounded-2xl border border-purple-500/30 bg-purple-950/20 space-y-3 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-purple-300 text-xs font-bold uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-purple-400" />
-                  <span>AI Suggested Reply (RAG-Grounded Draft)</span>
-                </div>
-                {ticket.suggested_reply && (
-                  <button
-                    onClick={() => handleCopyReply(ticket.suggested_reply!)}
-                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 rounded-lg transition"
-                  >
-                    {copiedReply ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedReply ? 'Copied!' : 'Copy Draft'}</span>
-                  </button>
-                )}
-              </div>
-
-              {ticket.suggested_reply ? (
-                <p className="text-sm text-slate-100 bg-[#090d16]/70 p-3.5 rounded-xl border border-purple-500/20 leading-relaxed font-sans">
-                  {ticket.suggested_reply}
-                </p>
-              ) : (
-                <div className="text-xs text-slate-500 italic">No suggested reply generated for this ticket.</div>
-              )}
-
-              {/* Human-in-the-Loop (HITL) Action Bar */}
-              {ticket.suggested_reply && (
-                <div className="pt-2 border-t border-purple-500/20 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
+              {/* Action Bar: Adopt to Ticket, Insert to Composer & RLHF Feedback */}
+              {activeDraft && (
+                <div className="pt-2 border-t border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Approve & Adopt to customer */}
                     <button
                       onClick={handleApprove}
                       disabled={isApproving || approvalSuccess}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50"
                     >
                       {approvalSuccess ? (
                         <>
@@ -908,11 +890,21 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                         </>
                       )}
                     </button>
+
+                    {/* Insert to Composer to edit first */}
+                    <button
+                      onClick={handleInsertDraftToComposer}
+                      className="px-3.5 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition"
+                      title="Paste draft into composer to edit before sending"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Edit in Composer</span>
+                    </button>
                   </div>
 
-                  {/* RLHF Thumbs Up / Down */}
+                  {/* RLHF Quality Feedback */}
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-slate-400 text-[11px]">RLHF Quality Feedback:</span>
+                    <span className="text-slate-400 text-[11px]">RLHF Feedback:</span>
                     <button
                       onClick={() => handleFeedbackClick('thumbs_up')}
                       className={`p-1.5 rounded-lg border transition ${
@@ -944,7 +936,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
 
               {/* Optional human correction input */}
               {showFeedbackInput && (
-                <div className="pt-2 space-y-2">
+                <div className="pt-2 space-y-2 border-t border-slate-800">
                   <input
                     type="text"
                     placeholder="Provide optional correction notes for the AI model..."
@@ -961,6 +953,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 </div>
               )}
             </div>
+
 
             {/* Python NLP Loading State */}
             {loadingNlp && (
