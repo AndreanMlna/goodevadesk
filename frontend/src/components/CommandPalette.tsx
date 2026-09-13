@@ -243,15 +243,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-20 sm:pt-28 px-4 bg-black/70 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-start justify-center pt-20 sm:pt-28 px-4 bg-black/75 backdrop-blur-md animate-fadeIn"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-[#0f172a] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[75vh]"
+        className="double-bezel w-full max-w-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Search Header */}
-        <div className="relative flex items-center px-4 py-3.5 border-b border-slate-800 bg-[#0b1222]">
+        <div className="double-bezel-inner rounded-[calc(1.25rem-1px)] overflow-hidden flex flex-col max-h-[75vh]">
+          {/* Search Header */}
+          <div className="relative flex items-center px-4.5 py-3.5 border-b border-slate-800 bg-[#090f20]">
           <Search className="w-5 h-5 text-indigo-400 shrink-0 mr-3" />
           <input
             ref={inputRef}
@@ -366,5 +367,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };

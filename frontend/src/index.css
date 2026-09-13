@@ -2,42 +2,122 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+:root {
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #070b14;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 15%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(6, 182, 212, 0.04) 0%, transparent 55%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
   }
   code, pre {
     font-family: 'JetBrains Mono', monospace;
   }
 }
 
+/* ========================================================= */
+/* HIGH-END DOUBLE-BEZEL (DOPPELRAND) ARCHITECTURE           */
+/* ========================================================= */
+.double-bezel {
+  position: relative;
+  border-radius: 1.25rem;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 16px 36px -12px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s var(--ease-spring);
+}
+
+.double-bezel-inner {
+  border-radius: calc(1.25rem - 1px);
+  background: #0d1527;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Fluid spring dynamics */
+.ease-spring {
+  transition-timing-function: var(--ease-spring);
+}
+
+.hover-lift {
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-spring);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+.hover-lift:active {
+  transform: scale(0.985);
+}
+
+/* Button-in-Button Trailing Capsule */
+.trailing-capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s var(--ease-spring);
+}
+.group:hover .trailing-capsule {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(96, 165, 250, 0.4);
+  transform: translateX(2px);
+}
+
 /* Glassmorphism and Custom Scrollbar */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(13, 21, 39, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .glass-panel-interactive {
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(13, 21, 39, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.3s var(--ease-spring);
 }
 
 .glass-panel-interactive:hover {
-  background: rgba(24, 32, 52, 0.8);
-  border-color: rgba(139, 92, 246, 0.3);
-  transform: translateY(-1px);
+  background: rgba(20, 30, 55, 0.85);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 12px 24px -8px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
 }
 
 /* Stitch Design System: Glass Card */
 .glass-card {
-  background: #111827;
-  border: 1px solid rgba(51, 65, 85, 0.65);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  background: #0d1527;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+  transition: all 0.3s var(--ease-spring);
+}
+
+.glass-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 20px 35px -8px rgba(0, 0, 0, 0.55), 0 0 25px -5px rgba(59, 130, 246, 0.1);
+}
+
+/* Global Accessibility Focus Ring */
+:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px #070b14, 0 0 0 4px #3b82f6 !important;
 }
 
 /* Custom subtle scrollbar */
@@ -46,7 +126,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b1120;
+  background: #070b14;
 }
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
@@ -61,7 +141,32 @@
 /* ========================================================= */
 html.light body {
   background-color: #f1f5f9;
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59, 130, 246, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 15%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(6, 182, 212, 0.02) 0%, transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: #0f172a;
+}
+
+html.light .double-bezel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(203, 213, 225, 0.7) 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+}
+
+html.light .double-bezel > .double-bezel-inner {
+  background: #ffffff;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.9), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+}
+
+html.light .trailing-capsule {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+html.light .group:hover .trailing-capsule {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 /* Background Canvas Layer */

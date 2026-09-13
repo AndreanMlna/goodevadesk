@@ -244,16 +244,16 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <button
               type="button"
               onClick={onOpenCommandPalette}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${
+              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all duration-300 cursor-pointer hover:-translate-y-0.5 ${
                 theme === 'light'
                   ? 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-sm'
-                  : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
+                  : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]'
               }`}
               title="Search tickets, switch tenants, or execute actions (Ctrl+K)"
             >
               <Search className="w-3.5 h-3.5 text-indigo-400" />
               <span>Search or Command...</span>
-              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-800/80 border border-slate-700 rounded text-slate-400">
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-800/80 border border-slate-700/80 rounded-md text-slate-300">
                 ⌘K
               </kbd>
             </button>
@@ -279,7 +279,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             type="button"
             onClick={onRefresh}
             disabled={isLoading}
-            className={`p-2 rounded-xl border transition disabled:opacity-50 ${
+            className={`p-2 rounded-xl border transition disabled:opacity-50 hover:-translate-y-0.5 ${
               theme === 'light'
                 ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 shadow-sm'
                 : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
@@ -294,7 +294,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <button
               type="button"
               onClick={() => setIsAlertOpen((prev) => !prev)}
-              className={`p-2 rounded-xl border transition relative ${
+              className={`p-2 rounded-xl border transition relative hover:-translate-y-0.5 ${
                 isAlertOpen
                   ? 'bg-blue-600/15 border-blue-500 text-blue-600'
                   : theme === 'light'
@@ -309,7 +309,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             {criticalCount > 0 && (
               <span
                 onClick={() => setIsAlertOpen((prev) => !prev)}
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white dark:ring-[#0b1120] animate-pulse cursor-pointer"
+                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white dark:ring-[#0b1120] animate-pulse cursor-pointer shadow-md shadow-rose-500/50"
                 title={`${criticalCount} Critical Tickets`}
               >
                 {criticalCount}
@@ -322,7 +322,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             href="https://github.com/AndreanMlna/goodevadesk"
             target="_blank"
             rel="noopener noreferrer"
-            className={`p-2 rounded-xl border transition flex items-center justify-center ${
+            className={`p-2 rounded-xl border transition flex items-center justify-center hover:-translate-y-0.5 ${
               theme === 'light'
                 ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300 shadow-sm'
                 : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
@@ -339,7 +339,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           <button
             type="button"
             onClick={onToggleTheme}
-            className={`p-2 rounded-xl border transition relative flex items-center justify-center group ${
+            className={`p-2 rounded-xl border transition relative flex items-center justify-center group hover:-translate-y-0.5 ${
               theme === 'light'
                 ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm'
                 : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white'
@@ -353,14 +353,16 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             )}
           </button>
 
-          {/* Create Ticket CTA */}
+          {/* Create Ticket CTA with Button-in-Button Architecture */}
           <button
             type="button"
             onClick={onOpenCreateModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-md shadow-blue-600/20 active:scale-95"
+            className="flex items-center gap-2 pl-3.5 pr-2 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:scale-95 group cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
             <span>New Ticket</span>
+            <div className="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center group-hover:scale-105 group-hover:bg-white/30 transition-transform">
+              <Plus className="w-3.5 h-3.5 text-white" />
+            </div>
           </button>
 
           {/* Admin Profile Avatar */}

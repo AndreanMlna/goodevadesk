@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Zap,
+  MessageSquare,
+  Radio,
+  Globe,
 } from 'lucide-react';
 import { OrganizationTenant } from '../types';
 import {
@@ -396,15 +399,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     key={p}
                     type="button"
                     onClick={() => setWebhookPlatform(p)}
-                    className={`p-2 rounded-xl border text-xs font-semibold capitalize transition ${
+                    className={`p-2 rounded-xl border text-xs font-semibold capitalize transition flex items-center justify-center gap-1.5 ${
                       webhookPlatform === p
                         ? 'bg-purple-600/20 border-purple-500/40 text-purple-300'
                         : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                     }`}
                   >
-                    {p === 'slack' && '💬 Slack Blocks'}
-                    {p === 'discord' && '🎮 Discord Embed'}
-                    {p === 'generic' && '🌐 Generic JSON'}
+                    {p === 'slack' && (
+                      <>
+                        <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Slack Blocks</span>
+                      </>
+                    )}
+                    {p === 'discord' && (
+                      <>
+                        <Radio className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Discord Embed</span>
+                      </>
+                    )}
+                    {p === 'generic' && (
+                      <>
+                        <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Generic JSON</span>
+                      </>
+                    )}
                   </button>
                 ))}
               </div>

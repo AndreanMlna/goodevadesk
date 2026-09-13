@@ -636,12 +636,20 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                     title="Stream real-time AI reply draft with PII protection"
                   >
                     <Zap className={`w-3 h-3 text-cyan-400 ${isStreaming ? 'animate-bounce' : ''}`} />
-                    <span>{isStreaming ? 'Streaming Draft...' : '⚡ Stream AI Copilot'}</span>
+                    <span>{isStreaming ? 'Streaming Draft...' : 'Stream AI Copilot'}</span>
                   </button>
-                  <span className="text-[11px] text-slate-500 hidden sm:inline">
-                    {composerType === 'internal_note'
-                      ? '🔒 Only visible to staff members'
-                      : '💬 Dispatched to customer email'}
+                  <span className="text-[11px] text-slate-500 hidden sm:inline-flex items-center gap-1.5">
+                    {composerType === 'internal_note' ? (
+                      <>
+                        <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+                        <span>Only visible to staff members</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3 text-blue-400 shrink-0" />
+                        <span>Dispatched to customer email</span>
+                      </>
+                    )}
                   </span>
                 </div>
               </div>
@@ -779,8 +787,8 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                       onClick={handleStartStream}
                       className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg shadow transition"
                     >
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>{streamedText ? 'Re-Stream AI Reply' : '⚡ Stream Live Copilot Draft'}</span>
+                      <Zap className="w-3.5 h-3.5 text-cyan-200" />
+                      <span>{streamedText ? 'Re-Stream AI Reply' : 'Stream Live Copilot Draft'}</span>
                     </button>
                   )}
                 </div>
@@ -844,7 +852,7 @@ export const TicketDetailModal: React.FC<TicketDetailModalProps> = ({
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-[#080d18]/60 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                  <span>Click <b>"⚡ Stream Live Copilot Draft"</b> to stream token-by-token responses with real-time PII sanitization and vector RAG.</span>
+                  <span>Click <b className="text-slate-200">"Stream Live Copilot Draft"</b> to stream token-by-token responses with real-time PII sanitization and vector RAG.</span>
                 </div>
               )}
 

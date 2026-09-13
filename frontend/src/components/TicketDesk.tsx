@@ -105,39 +105,50 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
       {/* 2. ASYMMETRIC TWO-COLUMN LAYOUT (TICKET STREAM + GAUGES) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT COLUMN: Ticket Stream & Filtering Controls (8 cols on lg) */}
-        <div className="lg:col-span-8 space-y-4">
-          {/* Search & Filter Bar */}
-          <div className="glass-card p-4 rounded-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              {/* Search Input */}
-              <div className="relative flex-1 w-full">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search tickets by subject, customer, or keywords..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
-                />
-              </div>
+        <div className="lg:col-span-8 space-y-5">
+          {/* Search & Filter Bar with Double-Bezel */}
+          <div className="double-bezel">
+            <div className="double-bezel-inner p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                {/* Search Input */}
+                <div className="relative flex-1 w-full">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search tickets by subject, customer email, or keywords..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-9 py-2.5 bg-slate-900/90 border border-slate-800/80 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/80 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-inner"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded transition"
+                      title="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
-              {/* Category Filter */}
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className={`w-full sm:w-auto px-3 py-2 border rounded-xl text-xs focus:outline-none cursor-pointer transition ${
-                  categoryFilter !== 'all'
-                    ? 'bg-blue-500/10 border-blue-500/40 text-blue-300 font-semibold'
-                    : 'bg-slate-900/90 border-slate-800 text-slate-300 focus:border-blue-500'
-                }`}
-              >
-                <option value="all">All Categories</option>
-                <option value="billing">Billing</option>
-                <option value="technical">Technical</option>
-                <option value="account">Account</option>
-                <option value="security">Security</option>
-                <option value="feature_request">Feature Request</option>
-              </select>
+                {/* Category Filter */}
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className={`w-full sm:w-auto px-3.5 py-2.5 border rounded-xl text-xs focus:outline-none cursor-pointer transition shadow-sm ${
+                    categoryFilter !== 'all'
+                      ? 'bg-blue-500/15 border-blue-500/40 text-blue-300 font-bold'
+                      : 'bg-slate-900/90 border-slate-800 text-slate-300 focus:border-blue-500/60'
+                  }`}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="billing">Billing</option>
+                  <option value="technical">Technical</option>
+                  <option value="account">Account</option>
+                  <option value="security">Security</option>
+                  <option value="feature_request">Feature Request</option>
+                </select>
 
               {/* Priority Filter */}
               <select
@@ -265,12 +276,14 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
                 </button>
               </div>
             )}
+            </div>
           </div>
 
-          {/* Ticket Stream Master Card Container (bounded scrollable card, no infinite page scrolling) */}
-          <div className="glass-card rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl flex flex-col">
-            {/* Card Container Header */}
-            <div className="px-4 sm:px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/50 flex items-center justify-between gap-3">
+          {/* Ticket Stream Master Card Container with Double-Bezel */}
+          <div className="double-bezel shadow-2xl">
+            <div className="double-bezel-inner rounded-[calc(1.25rem-1px)] overflow-hidden flex flex-col">
+              {/* Card Container Header */}
+              <div className="px-4 sm:px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/60 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
                   <Layers className="w-4 h-4" />
@@ -368,6 +381,7 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
             </div>
           </div>
         </div>
+      </div>
 
         {/* RIGHT COLUMN: Stitch Operational Gauges & Categories (4 cols on lg) */}
         <OperationalGaugesSidebar tickets={ticketsToAggregate} onNavigateToShelf={onNavigateToShelf} />
