@@ -173,10 +173,10 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
               <button
                 type="button"
                 onClick={() => handleStatusTabClick('all')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition border ${
                   statusFilter === 'all'
-                    ? 'bg-blue-600 text-white font-bold shadow-sm shadow-blue-500/25'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    ? 'bg-blue-600 border-blue-500 text-white font-bold shadow-sm shadow-blue-500/25'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border-slate-200 dark:bg-slate-900/80 dark:border-slate-800/80 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/60'
                 }`}
               >
                 All ({stats.total})
@@ -184,10 +184,10 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
               <button
                 type="button"
                 onClick={() => handleStatusTabClick('open')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 border ${
                   statusFilter === 'open'
-                    ? 'bg-amber-500 text-slate-950 font-bold shadow-sm shadow-amber-500/25'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-amber-300'
+                    ? 'bg-amber-500 border-amber-400 text-slate-950 font-bold shadow-sm shadow-amber-500/25'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border-slate-200 dark:bg-slate-900/80 dark:border-slate-800/80 dark:text-slate-400 dark:hover:text-amber-300 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <AlertCircle className="w-3.5 h-3.5" /> Open ({stats.open})
@@ -195,10 +195,10 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
               <button
                 type="button"
                 onClick={() => handleStatusTabClick('in_progress')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 border ${
                   statusFilter === 'in_progress'
-                    ? 'bg-blue-500 text-white font-bold shadow-sm shadow-blue-500/25'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-blue-300'
+                    ? 'bg-blue-500 border-blue-400 text-white font-bold shadow-sm shadow-blue-500/25'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border-slate-200 dark:bg-slate-900/80 dark:border-slate-800/80 dark:text-slate-400 dark:hover:text-blue-300 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" /> In Progress ({stats.in_progress})
@@ -206,10 +206,10 @@ export const TicketDesk: React.FC<TicketDeskProps> = ({
               <button
                 type="button"
                 onClick={() => handleStatusTabClick('closed')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 border ${
                   statusFilter === 'closed'
-                    ? 'bg-emerald-600 text-white font-bold shadow-sm shadow-emerald-500/25'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-emerald-300'
+                    ? 'bg-emerald-600 border-emerald-500 text-white font-bold shadow-sm shadow-emerald-500/25'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border-slate-200 dark:bg-slate-900/80 dark:border-slate-800/80 dark:text-slate-400 dark:hover:text-emerald-300 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" /> Closed ({stats.closed})
