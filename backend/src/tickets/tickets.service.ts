@@ -14,12 +14,12 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { Prisma, Ticket, TicketStatus } from '@prisma/client';
 import {
-  SLA_HOURS_BY_PRIORITY,
   DEFAULT_TICKET_PRIORITY,
   DEFAULT_TICKET_SENTIMENT,
   DEFAULT_URGENCY_SCORE,
   DEFAULT_PAGE_LIMIT,
 } from './tickets.constants';
+import { calculateSlaDeadline, buildTicketWhereClause } from './tickets.utils';
 
 export interface CreateTicketResponse {
   id: string;
@@ -259,45 +259,16 @@ export class TicketsService {
    * Computes the SLA deadline based on urgency priority level.
    */
   private calculateSlaDeadline(priority: string, baseDate: Date = new Date()): Date {
-    const slaHours = SLA_HOURS_BY_PRIORITY[priority.toLowerCase()] ?? SLA_HOURS_BY_PRIORITY.normal;
-    const millisecondsPerHour = 60 * 60 * 1000;
-    return new Date(baseDate.getTime() + slaHours * millisecondsPerHour);
+    return calculateSlaDeadline(priority, baseDate);
   }
 
   /**
    * Retrieves paginated tickets scoped strictly to the calling tenant organization.
    */
   async findAll(organizationId: string, query: QueryTicketsDto & { priority?: string }) {
-    const { status, category, search, page = 1, limit = DEFAULT_PAGE_LIMIT, priority } = query as any;
+    const { page = 1, limit = DEFAULT_PAGE_LIMIT } = query as any;
     const skip = (page - 1) * limit;
-
-    const where: Prisma.TicketWhereInput = {
-      organization_id: organizationId,
-    };
-
-    if (status) {
-      where.status = status;
-    }
-
-    if (category) {
-      where.category = {
-        equals: category.toLowerCase().trim(),
-        mode: 'insensitive',
-      };
-    }
-
-    if (priority) {
-      where.priority = priority.toLowerCase().trim();
-    }
-
-    if (search && search.trim().length > 0) {
-      const searchTerm = search.trim();
-      where.OR = [
-        { subject: { contains: searchTerm, mode: 'insensitive' } },
-        { message: { contains: searchTerm, mode: 'insensitive' } },
-        { customer_email: { contains: searchTerm, mode: 'insensitive' } },
-      ];
-    }
+    const where = buildTicketWhereClause(organizationId, query);
 
     const [tickets, totalCount] = await Promise.all([
       this.prisma.ticket.findMany({
