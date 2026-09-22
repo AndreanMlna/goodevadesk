@@ -37,4 +37,13 @@ export class VectorController {
     const count = await this.vectorService.syncSopVectors();
     return { success: true, synced_documents: count };
   }
+
+  @Get('pgvector-status')
+  @ApiOperation({
+    summary: 'Vector Engine Status: Check native PostgreSQL pgvector & HNSW index status',
+  })
+  @ApiResponse({ status: 200, description: 'Returns pgvector operational status and dimensions.' })
+  async getStatus() {
+    return await this.vectorService.getPgVectorStatus();
+  }
 }
