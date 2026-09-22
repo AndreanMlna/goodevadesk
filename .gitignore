@@ -104,10 +104,15 @@ docker-compose.override.yml
 docker-compose.local.yml
 
 # ------------------------------------------------------------------------------
-# 8. Local AI Workspace Cache / Assistant Skills
+# 8. Local AI Workspace Cache / Assistant Skills & System Prompts
 # ------------------------------------------------------------------------------
-# Ignores local AI coding agent skill scratch folders so only project code is pushed
+# Ignores local AI coding agent skill scratch folders and assistant prompt/rule files
 .agents/
+GEMINI.md
+CLAUDE.md
+.gemini/
+.claude/
+.antigravity/
 
 # ------------------------------------------------------------------------------
 # 9. IDE, Editors & Workspaces
